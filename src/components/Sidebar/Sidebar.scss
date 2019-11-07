@@ -1,0 +1,13 @@
+@mixin wh($w, $h) {
+    width: $w;
+    height: $h;
+}
+
+.sidebar_container{
+    position: fixed;
+    top: 0;
+    left: 0;
+    @include wh(240px, 100%);
+    padding-top: 65px;
+    z-index: 400;
+}

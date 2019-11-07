@@ -1,0 +1,37 @@
+@mixin wh($w, $h) {
+    width: $w;
+    height: $h;
+}
+
+.header_container{
+    position: fixed;
+    top: 0;
+    left: 0;
+    @include wh(100%, 65px);
+    line-height: 65px;
+    padding: 0 40px;
+    background-color: #333333;
+    color: #fff;
+    z-index: 500;
+    overflow: hidden;
+    .header_left{
+        height: 65px;
+        .header_logo{
+            display: inline-block;
+            @include wh(50px, 65px);
+            padding: 7.5px 0 7.5px;
+            img{
+                display: block;
+                @include wh(50px, 50px);
+            }
+        }
+        h1{
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 24px;
+            font-weight: 600;
+            vertical-align: top;
+            color: #fff;
+        }
+    }
+}

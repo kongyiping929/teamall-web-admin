@@ -1,0 +1,84 @@
+.SignIn_main{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 1366px;
+    background: url('../../assets/img/login_bg.png') no-repeat 0 0/cover;
+    box-sizing: border-box;
+    .SignIn_form_box{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 1188px;
+        height: 655px;
+        border-radius: 10px;
+        margin: -327px 0 0 -594px;
+        background: rgba(255, 255, 255, 0.7343999999999999);
+        .SignIn_title{
+            line-height: 50px;
+            padding-top: 160px;
+            margin-bottom: 57px;
+            font-size: 36px;
+            color: rgba(53,53,53,1);
+            text-align: center;
+        }
+        .SignIn_form{
+            width: 468px;
+            margin: 0 auto;
+            .SignIn_form_text{
+                width: 100%;
+                height: 50px;
+                line-height: 50px;
+                margin-bottom: 20px;
+                input{
+                    width: 100%;
+                    height: 100%;
+                    line-height: 100%;
+                    background:rgba(255,255,255,1);
+                    border-radius: 4px;
+                    border: 1px solid #FFFFFF;
+                    color: rgba(53,53,53,1);
+                    font-size: 18px;
+                    opacity:0.7343999999999999;
+                    text-align: center;
+                }
+                .SignIn_form_text_passw{
+                    background: url('../../assets/img/iconPassword@2x.png') no-repeat 0 0/cover;
+                }
+            }
+            .SignIn_form_button{
+                width: 100%;
+                height: 50px;
+                line-height: 50px;
+                background: linear-gradient(-90deg,rgba(90,3,17,1),rgba(30,35,109,1));
+                border-radius: 4px; 
+                font-size: 18px;
+                color: rgba(255,255,255,1);
+                outline: none;
+                border: 0;
+            }
+        }
+    }
+}
+
+
+// 搜索框占位符颜色为白色
+.Rectangle-2::-webkit-input-placeholder {
+    /* WebKit browsers */
+    color: rgba(53,53,53,1);
+}
+
+.Rectangle-2:-moz-placeholder {
+    /* Mozilla Firefox 4 to 18 */
+    color: rgba(53,53,53,1);
+}
+
+.Rectangle-2::-moz-placeholder {
+    /* Mozilla Firefox 19+ */
+    color: rgba(53,53,53,1);
+}
+
+.Rectangle-2:-ms-input-placeholder {
+    /* Internet Explorer 10+ */
+    color: rgba(53,53,53,1);
+} // 搜索框占位符颜色为白色

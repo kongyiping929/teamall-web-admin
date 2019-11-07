@@ -1,0 +1,42 @@
+@mixin wh($w, $h) {
+    width: $w;
+    height: $h;
+}
+
+.index_page{
+    position: relative;
+    @include wh(100%, 100%);
+}
+
+.index_container{
+    @include wh(100%, 100%);
+    padding: 110px 10px 0px 250px;
+    background-color: #F2F2F2;
+}
+
+.index_view{
+    @include wh(100%, 100%);
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    overflow: auto;
+}
+
+.index_crumbs{
+    position: absolute;
+    top: 65px;
+    left: 250px;
+    width: 700px;
+    height: 45px;
+    padding: 12px 0;
+    z-index: 5;
+}
+
+.view{
+    // @include wh(100%, 100%);
+}
+
+.optionTip{
+    font-size: 16px;
+    color: #555;
+}
