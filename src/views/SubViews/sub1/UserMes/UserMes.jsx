@@ -127,7 +127,7 @@ class UserMes extends Component {
 
         let url = `${URL}${'/admin/user/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&userStatus=${accountType}`;
         console.log(url);
-        
+        debugger
         window.location.href = url;
     }
 
@@ -173,10 +173,10 @@ class UserMes extends Component {
                         pagination={{
                             total: this.state.total,
                             pageSize: this.state.pageSize,
-                            onChange: this.state.changePage,
+                            onChange: this.changePage,
                             current: this.state.pageNum,
                             hideOnSinglePage: true,
-                            showQuickJumper: true,
+                            /* showQuickJumper: true, */
                             showTotal: () => `共 ${this.state.total} 条数据`
                         }} 
                         rowKey={(record, index) => index} 

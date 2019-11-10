@@ -14,15 +14,15 @@ class StoreControl extends Component {
             pageNum: 1, // 滚动分页
             isModel: false, // 店铺模态框
             proModel: false, // 产品详情模态框
-            query: '', // 搜索
+            query: localStorage.getItem("query") != null ? localStorage.getItem("query") : '', // 搜索
             childQuery: '', // 子页面搜索
             mapSearch: '', // 店铺位置搜索
-            currentPage: 1, // 当前页码
+            currentPage: localStorage.getItem("currentPage") != null ? Number(localStorage.getItem("currentPage")) : 1, // 当前页码
             total: 1, // 总数
             childPage: 1, // 当前页码
             pageSize: 10, // 每页条数
             childTotal: 1, // 总数
-            province: '0', // 省份下拉标识
+            province: localStorage.getItem("province") != null ? localStorage.getItem("province") : '0', // 省份下拉标识
             provinceData: [], // 省数据
             number: '', // 服务电话
             place: '', // 详细地址
@@ -43,6 +43,7 @@ class StoreControl extends Component {
             subdivideData: [{}], // 产品详情细分规格数据
             packagingData: [{}], // 产品详情包装规格数据
             linkChildFlag: true, // 子页面切换
+            scrollTop: localStorage.getItem("scrollTop") != null ? localStorage.getItem("scrollTop") : 0
         }
         this.options = []
 
@@ -86,94 +87,15 @@ class StoreControl extends Component {
             }
         ]
 
-        this.childColumns = [ // 子页面定义列表数据
-            {
-                title: '产品ID',
-                dataIndex: 'name',
-                align: 'center'
-            },
-            {
-                title: '产品名称',
-                dataIndex: 'age',
-                align: 'center'
-            },
-            {
-                title: '产品分类',
-                dataIndex: 'address',
-                align: 'center'
-            },
-            {
-                title: '上架状态',
-                dataIndex: '1',
-                align: 'center'
-            },
-            {
-                title: '状态更新时间',
-                dataIndex: '2',
-                align: 'center'
-            },
-            {
-                title: '操作',
-                dataIndex: '3',
-                align: 'center',
-                render: (t, r, i) => (
-                    <>
-                        <Button type="link" size="small" onClick={() => this.changeProjectModal(true, r)}>产品详情</Button>
-                        <Button type="link" size="small" onClick={() => this.upOrdown(true, r)}>下架</Button>
-                    </>
-                )
-            }
-        ]
-
-        this.packagingColumns = [ // 产品详情包装规格列表数据
-            {
-                title: '包装规格',
-                dataIndex: 'name',
-                align: 'center'
-            },
-            {
-                title: '价格增加',
-                dataIndex: 'addPrice',
-                align: 'center'
-            },
-            {
-                title: '成本增加',
-                dataIndex: 'addCost',
-                align: 'center'
-            },
-            {
-                title: '库存',
-                dataIndex: 'stockNum',
-                align: 'center'
-            }
-        ]
-
-        this.subdivideColumns = [ // 产品详情细分规格列表数据
-            {
-                title: '细分规格',
-                dataIndex: 'name',
-                align: 'center'
-            },
-            {
-                title: '价格增加',
-                dataIndex: 'addPrice',
-                align: 'center'
-            },
-            {
-                title: '成本增加',
-                dataIndex: 'addCost ',
-                align: 'center'
-            },
-            {
-                title: '增值百分比增加',
-                dataIndex: 'addIncrementRate',
-                align: 'center'
-            }
-        ]
     }
 
     componentWillMount() {
         this.init();
+        localStorage.removeItem("currentPage");
+        localStorage.removeItem("query");
+        localStorage.removeItem("province");
+        localStorage.removeItem("scrollTop");
+        localStorage.removeItem("storeName");
     }
     
 
@@ -204,61 +126,34 @@ class StoreControl extends Component {
     }
 
     pageData = () => { // 店铺页面数据
-        let { currentPage, pageSize } = this.state;
+        let { currentPage, pageSize, query } = this.state;
         axios.post('/admin/shop/list', { // 页面数据
             pageNum : currentPage,
             pageSize ,
+            shopName: query
         })
             .then(({ data }) => {
                 if (data.code !== "200") return message.error(data.message);
                 if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-
                 this.setState({
                     data: data.responseBody.data.list,
                     total: data.responseBody.data.total
-                })
+                }, ()=>{ this.state.scrollTop > 0 && document.querySelector(`.index_view`).scrollTo(0, this.state.scrollTop) })
             })
     }
 
     // 切换子页面
-    changeProductModal = (linkChildFlag, r) => this.setState({ linkChildFlag, id: r.id, storeName: r.shopName }, () => this.detailData())
-
-    // 产品详情页面列表数据
-    detailData = () => {
-        let { pageSize, childPage, id } = this.state;
-        axios.post('/admin/shop/product/list', { // 产品列表数据
-            pageNum: childPage,
-            pageSize,
-            shopId: id
-        }).then(({ data }) => {
-            if (data.code !== "200") return message.error(data.message);
-            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-
-            // this.setState({
-            //     childData: data.responseBody.data.list,
-            //     childTotal: data.responseBody.data.total
-            // })
-        })
+    changeProductModal = (linkChildFlag, r) => {
+        let {province , query, currentPage} = this.state;
+        let scrollTop = document.querySelector(`.index_view`).scrollTop;
+        localStorage.setItem("province", province);
+        localStorage.setItem("query", query);
+        localStorage.setItem("currentPage", currentPage);
+        localStorage.setItem("scrollTop", scrollTop);
+        localStorage.setItem("storeName", r.shopName);
+        this.props.history.push({ pathname: `/sub2/200/${r.id}` });
     }
-
-    // 产品详情
-    changeProjectModal = (status, r) => {
-        this.setState({ proModel: status },()=>{
-            axios.post('/admin/shop/get/productInfo', { // 产品详情
-                productId: r.productId,
-                shopId: this.state.id
-            }).then(({ data }) => {
-                if (data.code !== "200") return message.error(data.message);
-                if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                console.log(data);
-                
-                // this.setState({
-                //     childData: data.responseBody.data.list,
-                //     childTotal: data.responseBody.data.total
-                // })
-            })
-        })
-    }
+    
 
     // 店铺编辑
     changeUpdate = (e, r, type) => this.setState({ isModel: true, flagModal: type },()=>{
@@ -287,31 +182,14 @@ class StoreControl extends Component {
             maskClosable: true,
             icon: <Icon type="warning" />,
             onOk() {
-                console.log('OK');
-            },
-            onCancel() {
-                console.log('Cancel');
-            },
-        });
-    }
-
-    // 下架
-    upOrdown = (e, r) => {
-        confirm({
-            title: '是否确认下架?',
-            maskClosable: true,
-            icon: <Icon type="warning" />,
-            onOk() {
-                axios.post('/admin/shop/updProductStatus', { 
-                    productId: r.productId,
-                    productStatus: 2,
-                    shopId: this.state.id
+                axios.post('/admin/shop/updEnable', { 
+                    id: r.id,
+                    enable: 2
                 }).then(({ data }) => {
                     console.log(data);
                     if (data.code !== "200") return message.error(data.message);
                     if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
                     console.log(data);
-                    
                 })
             }
         });
@@ -363,7 +241,6 @@ class StoreControl extends Component {
                 })
             })
         }
-        if (type === 'child') console.log(v, this.state.childQuery);
     }
 
     // 平台、电话、详细地址input
@@ -375,7 +252,6 @@ class StoreControl extends Component {
     // 重置
     reset = (type) => {
         if (type === 'father') this.setState({ query: '', currentPage: 1, province: '0' }, () => this.pageData());
-        if (type === 'child') this.setState({ childQuery: '', childPage: 1 }, () => this.detailData());
     }
 
     // 添加店铺
@@ -403,10 +279,7 @@ class StoreControl extends Component {
     }
 
     // 更改页码
-    changePage = v => this.setState({ currentPage: v })
-
-    // 更改子页面页码
-    childChangePage = v => this.setState({ childPage: v })
+    changePage = v => this.setState({ currentPage: v }, () => this.pageData())
 
     goBack = (linkChildFlag) => this.setState({ linkChildFlag });
 
@@ -495,81 +368,44 @@ class StoreControl extends Component {
         let { linkChildFlag, provinceData, province, options, selcetGPS, selectCheckGPS, proData, storeName, selectPlace } = this.state;
         return (
             <div className="view">
-                {
-                    linkChildFlag ?
-                        <Fragment>
-                            {/* 顶部搜索框 */}
-                            <div className="searchLayer">
-                                <div className="mb15">
-                                    <Search style={{ width: 250 }} placeholder="请输入店铺名称" value={this.state.query} onChange={e => this.changeQeury(e, 'father')} onSearch={e => this.searchQuery(e, 'father')} enterButton />
-                                    <Button type="primary" className="ml15" onClick={() => this.reset('father')}>重置</Button>
-                                    <Button type="primary" className="ml15" onClick={() => this.addStore('addStore')}>添加店铺</Button>
-                                </div>
-                                <div className="mb15">
-                                    <span className="tip mr15 ">省份:</span>
-                                    <Select style={{ width: 120 }} value={province} onChange={e => this.changeSelect(e, 'province')}>
-                                        {
-                                            provinceData.map((v, i) => <Option key={v.id} value={v.id}>{v.addrName}</Option>)
-                                        }
+                <Fragment>
+                    {/* 顶部搜索框 */}
+                    <div className="searchLayer">
+                        <div className="mb15">
+                            <Search style={{ width: 250 }} placeholder="请输入店铺名称" value={this.state.query} onChange={e => this.changeQeury(e, 'father')} onSearch={e => this.searchQuery(e, 'father')} enterButton />
+                            <Button type="primary" className="ml15" onClick={() => this.reset('father')}>重置</Button>
+                            <Button type="primary" className="ml15" onClick={() => this.addStore('addStore')}>添加店铺</Button>
+                        </div>
+                        <div className="mb15">
+                            <span className="tip mr15 ">省份:</span>
+                            <Select style={{ width: 120 }} value={province} onChange={e => this.changeSelect(e, 'province')}>
+                                {
+                                    provinceData.map((v, i) => <Option key={v.id} value={v.id}>{v.addrName}</Option>)
+                                }
 
-                                    </Select>
-                                </div>
-                            </div>
+                            </Select>
+                        </div>
+                    </div>
 
-                            {/* 列表 */}
-                            <div style={{ textAlign: 'center' }}>
-                                <Table
-                                    bordered
-                                    dataSource={this.state.data}
-                                    columns={this.columns}
-                                    pagination={{
-                                        total: this.state.total,
-                                        pageSize: this.state.pageSize,
-                                        onChange: this.state.changePage,
-                                        current: this.state.currentPage,
-                                        hideOnSinglePage: true,
-                                        showQuickJumper: true,
-                                        showTotal: () => `共 ${this.state.total} 条数据`
-                                    }}
-                                    rowKey={(record, index) => index}
-                                />
-                            </div>
-                        </Fragment> :
-                        <Fragment>
-                            {/* 返回上一级 */}
-                            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                                <Button type="primary" className="ml15" onClick={() => this.goBack(true)}> 返回上一级 </Button>
-                                <div style={{ marginLeft: '20px', fontSize: '16px' }}>店铺名称: {storeName} </div>
-                            </div>
-                            {/* 顶部搜索框 */}
-                            <div className="searchLayer">
-                                <div className="mb15">
-                                    <Search style={{ width: 250 }} placeholder="请输入产品名称" value={this.state.childQuery} onChange={e => this.changeQeury(e, 'child')} onSearch={e => this.searchQuery(e, 'child')} enterButton />
-                                    <Button type="primary" className="ml15" onClick={() => this.reset('child')}>重置</Button>
-                                </div>
-                            </div>
-
-                            {/* 列表 */}
-                            <div style={{ textAlign: 'center' }}>
-                                <Table
-                                    bordered
-                                    dataSource={this.state.childData}
-                                    columns={this.childColumns}
-                                    pagination={{
-                                        total: this.state.childTotal,
-                                        pageSize: this.state.pageSize,
-                                        onChange: this.state.childChangePage,
-                                        current: this.state.childPage,
-                                        hideOnSinglePage: true,
-                                        showQuickJumper: true,
-                                        showTotal: () => `共 ${this.state.childTotal} 条数据`
-                                    }}
-                                    rowKey={(record, index) => index}
-                                />
-                            </div>
-                        </Fragment>
-                }
-
+                    {/* 列表 */}
+                    <div style={{ textAlign: 'center' }}>
+                        <Table
+                            bordered
+                            dataSource={this.state.data}
+                            columns={this.columns}
+                            pagination={{
+                                total: this.state.total,
+                                pageSize: this.state.pageSize,
+                                onChange: this.changePage,
+                                current: this.state.currentPage,
+                                hideOnSinglePage: true,
+                                /* showQuickJumper: true, */
+                                showTotal: () => `共 ${this.state.total} 条数据`
+                            }}
+                            rowKey={(record, index) => index}
+                        />
+                    </div>
+                </Fragment>
                 <Modal
                     title={this.state.flagModal === 'update' ? '店铺编辑' : '店铺添加'}
                     visible={this.state.isModel}
@@ -625,14 +461,14 @@ class StoreControl extends Component {
                                 </p>
                                 <Table
                                     bordered
-                                    dataSource={this.state.subdivideData}
+                                    dataSource={v.lineList}
                                     columns={this.subdivideColumns}
                                     rowKey={(record, index) => index}
                                     pagination={false}
                                 />
                                 <Table
                                     bordered
-                                    dataSource={this.state.packagingData}
+                                    dataSource={v.packageList}
                                     columns={this.packagingColumns}
                                     style={{ marginTop: 10}}
                                     pagination={false}

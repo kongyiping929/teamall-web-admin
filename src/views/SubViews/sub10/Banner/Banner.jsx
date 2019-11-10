@@ -174,11 +174,7 @@ class BannerAdmin extends Component {
     changeImgItem = async () => {
         let { img } = this.state
         let file = this.file.current.files[0];
-        var fileSize = (file.size / 1024).toFixed(0);
-        if (Number(fileSize) > 1024) {
-            this.file.current.value = ''
-            return message.error('文件大小不能大于1M！')
-        }
+        if (file.size / 1048576 > 1) return Modal.error({ title: '超过1M限制，不允许上传~' })
         img = window.URL.createObjectURL(this.file.current.files[0])
         this.setState({ img })
     }

@@ -91,5 +91,5 @@ var post = function (url, data) {
     });
 };
 export default { get, post };
-
-export const URL = process.env.NODE_ENV === 'development' ? 'http://47.112.118.84:7001/cy' : window.location.origin;
+/* http://47.112.118.84:7001/cy */
+export const URL = process.env.NODE_ENV === 'development' ? 'https://api.teafunshop.com/cy/' : "https://api.teafunshop.com/cy/";

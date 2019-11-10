@@ -194,10 +194,10 @@ class Extract extends Component {
                         pagination={{
                             total: this.state.total,
                             pageSize: this.state.pageSize,
-                            onChange: this.state.changePage,
+                            onChange: this.changePage,
                             current: this.state.pageNum,
                             hideOnSinglePage: true,
-                            showQuickJumper: true,
+                            /* showQuickJumper: true, */
                             showTotal: () => `共 ${this.state.total} 条数据`
                         }}
                         rowKey={(record, index) => index}

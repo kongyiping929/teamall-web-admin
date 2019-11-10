@@ -111,12 +111,22 @@ class ProductClassify extends Component {
             {
                 title: '产品类型状态',
                 dataIndex: 'productTypeEnable',
-                align: 'center'
+                align: 'center',
+                render: (t, r, i) => (
+                    <>
+                    <span style={{"whiteSpace": "nowrap"}}> {t} </span>
+                    </>
+                )
             },
             {
                 title: '广场状态',
                 dataIndex: 'squareEnable',
-                align: 'center'
+                align: 'center',    
+                render: (t, r, i) => (
+                    <>
+                    <span style={{"whiteSpace": "nowrap"}}> {t} </span>
+                    </>
+                )
             },
             {
                 title: '创建时间',
@@ -438,7 +448,7 @@ class ProductClassify extends Component {
     handleChange = ({ file, fileList }) => { // 图片上传
         let { urlData, isAddProduct, updateUrlData } = this.state;
         if (file.type !== "image/png") return Modal.error({ title: '只能上传PNG格式的图片~' })
-        if (file.size / 1024 > 1) return Modal.error({ title: '超过1M限制，不允许上传~' })
+        if (file.size / 1048576 > 1) return Modal.error({ title: '超过1M限制，不允许上传~' })
 
         if (file.status === 'done') {
             this.setState({ fileList }, () => {
@@ -511,7 +521,7 @@ class ProductClassify extends Component {
                             onChange: this.changePage,
                             current: currentPage,
                             hideOnSinglePage: true,
-                            showQuickJumper: true,
+                            /* showQuickJumper: true, */
                             showTotal: () => `共 ${total} 条数据`
                         }}
                         rowKey={(record, index) => index}

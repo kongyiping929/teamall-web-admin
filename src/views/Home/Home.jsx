@@ -6,6 +6,10 @@ import Crumbs from '../../components/Crumbs/Crumbs'
 import './Home.scss'
 import subRoutes from '../../routes/subRoutes'
 import Cookie from 'js-cookie'
+import Async from '../../components/AsyncComponent/AsyncComponent';
+
+const StoreDetail = Async(() => import('../SubViews/sub2/StoreDetail'))
+const ProductMsgDetail = Async(() => import('../SubViews/sub4/ProductMsgCtrl/ProductMsgDetail'))
 
 const routesAll = subRoutes.map(route => route.children)
 let routes = []
@@ -51,6 +55,8 @@ class Home extends Component {
                 <div className="index_container">
                     <div className="index_view">
                         <Switch>
+                            <Route path={ `/sub2/200/:id` } key={ 200 } component={StoreDetail} />
+                            <Route path={ `/sub4/401/:id` } key={ 401 } component={ProductMsgDetail} />
                             { routes.map(route => <Route path={ route.path } key={ route.key } component={ route.component ? route.component : null } />) }
                         </Switch>
                     </div>

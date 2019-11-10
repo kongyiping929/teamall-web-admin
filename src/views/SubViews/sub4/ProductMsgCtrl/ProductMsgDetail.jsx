@@ -14,12 +14,12 @@ class ProductMsgCtrl extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            query: localStorage.getItem("query") != null ? localStorage.getItem("query") : '', // 搜索
-            pageNum: localStorage.getItem("pageNum") != null ? Number(localStorage.getItem("pageNum")) : 1, // 当前页码
+            query: '', // 搜索
+            pageNum: 1, // 当前页码
             pageSize: 10, // 每页条数
             total: 1, // 产品总数
             sizeTotal: 1, // 规格总数
-            royaltyType: localStorage.getItem("royaltyType") != null ? localStorage.getItem("royaltyType") : "0", // 0 全部 1 启用 可预约 2 关闭 不可预约
+            royaltyType: '0', // 0 全部 1 启用 可预约 2 关闭 不可预约
             data: [], // 产品列表数据
             sizeData: [], // 规格列表数据
             selectData: [], // 下拉框数据
@@ -44,6 +44,7 @@ class ProductMsgCtrl extends Component {
             paramsNum: [], // 添加参数数据 细分类数据
             packageType: [], // 包装类型数据
             childFlag: true, // 子页面切换
+            id: props.match.params.id,
             proName: '', // 规格界面产品名称
             proId: '', // 产品ID/规格添加需要
             proSizeId: '', // 产品规格ID
@@ -51,23 +52,38 @@ class ProductMsgCtrl extends Component {
             updateUrlData: [], // 修改时照片url集合
             urlData: [], // 照片url集合
             fileList: [], // 上传文件列表
-            scrollTop: localStorage.getItem("scrollTop") != null ? localStorage.getItem("scrollTop") : 0,
         }
 
-        this.columns = [ // 定义列表数据
+       
+        this.childColumns = [ // 定义子页面列表数据
             {
-                title: '产品ID',
-                dataIndex: 'id',
+                title: '规格名称',
+                dataIndex: 'specName',
                 align: 'center'
             },
             {
-                title: '产品类型',
-                dataIndex: 'typeName',
+                title: '规格市场价格',
+                dataIndex: 'marketPrice',
                 align: 'center'
             },
             {
-                title: '产品操作状态',
-                dataIndex: 'enableDesc',
+                title: '规格基础价格',
+                dataIndex: 'basePrice',
+                align: 'center'
+            },
+            {
+                title: '规格基础成本',
+                dataIndex: 'costPrice',
+                align: 'center'
+            },
+            {
+                title: '基础增值百分比',
+                dataIndex: 'incrementRate',
+                align: 'center'
+            },
+            {
+                title: '预约状态',
+                dataIndex: 'appointmentStatusDesc',
                 align: 'center'
             },
             {
@@ -82,63 +98,32 @@ class ProductMsgCtrl extends Component {
             },
             {
                 title: '操作',
-                dataIndex: '3',
+                dataIndex: 'other',
                 align: 'center',
-                render: (t, r, i) => (
-                    <>
-                        <Button type="link" size="small" onClick={() => this.changeProductModal(true, 2, r)}>产品编辑</Button>
-                        <Button type="link" size="small" onClick={() => this.changeStatusModal(true, r)}>{r.enable == 1 ? '禁用' : '启用'}</Button>
-                        <Button type="link" size="small" onClick={() => this.particularsModal(r)}>规格详情</Button>
-                    </>
-                )
+                render: (t, r, i) => <Button type="link" size="small" onClick={() => this.addParticulars(true, 2, r)}>规格编辑</Button>
             }
         ]
-       
     }
 
     componentDidMount() {
-        this.init();
-        localStorage.removeItem("pageNum");
-        localStorage.removeItem("query");
-        localStorage.removeItem("royaltyType");
-        localStorage.removeItem("scrollTop");
+        this.init()
     }
 
     init = () => {
-        let { pageNum, pageSize, royaltyType} = this.state;
-            axios.post('/admin/product/list', { // 获取所有数据
-            enable: royaltyType == "0" ? "" : royaltyType,
-            pageNum,
-            pageSize
+        let { id } = this.state;
+        axios.post('/admin/product/get/info', { // 获取产品名称
+            id: id
         }).then(({ data }) => {
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-            this.setState({ 
-                data: data.responseBody.data.list, total: data.responseBody.data.total 
-            }, ()=>{ this.state.scrollTop > 0 && document.querySelector(`.index_view`).scrollTo(0, this.state.scrollTop) })
-        })
-
-        axios.post('/admin/productType/all/list').then(({ data }) => { // 获取所有产品类型
-            if (data.code !== "200") return message.error(data.message);
-            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-            this.setState({ selectData: data.responseBody.data })
-        })
-    }
-
-    // 子页面切换
-    particularsModal = r => {
-        let {royaltyType , query, pageNum} = this.state;
-        let scrollTop = document.querySelector(`.index_view`).scrollTop;
-        localStorage.setItem("royaltyType", royaltyType);
-        localStorage.setItem("query", query);
-        localStorage.setItem("pageNum", pageNum);
-        localStorage.setItem("scrollTop", scrollTop);
-        this.props.history.push({ pathname: `/sub4/401/${r.id}` });
+            let getData = data.responseBody.data
+            this.setState({ proName: getData.productName, proId: getData.id, query: '' }, ()=> this.sizeList())
+        });
     }
 
     // 规格页面获取列表
     sizeList = () => {
-        let { pageNum, pageSize, proId } = this.state;
+        let { pageNum, pageSize, proId, id } = this.state;
         axios.post('/admin/productSpec/list', { // 获取列表
             appointmentStatus: '',
             pageNum,
@@ -153,10 +138,9 @@ class ProductMsgCtrl extends Component {
     }
 
     // 返回上一页
-    goBack = childFlag => this.setState({ childFlag, query: '' }, () => {
-        if (this.state.royaltyType == '0') this.init()
-        else this.axiosSelect()
-    })
+    goBack = () => {
+        window.history.go(-1);  
+    }
 
     // 规格编辑/添加
     addParticulars = (status, type, id) => {
@@ -229,87 +213,12 @@ class ProductMsgCtrl extends Component {
     // 更改搜索框
     changeQeury = e => this.setState({ query: e.target.value.trim() });
 
-    // 产品添加/编辑
-    changeProductModal = (status, type, id) => {
-        if (!status) return this.setState({
-            productModal: status,
-            isAddProduct: type,
-            paramsNum: [],
-            title: '',
-            productName: '',
-            productPlane: '',
-            productCompany: '',
-            productExplain: '',
-            fileList: [],
-            defineSelect: '',
-            updateUrlData: [],
-            urlData: [],
-        })
-
-        this.setState({
-            productModal: status,
-            isAddProduct: type,
-            proId: type === 2 ? id.id : ''
-        }, () => {
-                if (type == 2) {
-                axios.post('/admin/product/get/info', { // 编辑返回数据
-                    id: id.id
-                }).then(({ data }) => {
-                    if (data.code !== "200") return message.error(data.message);
-                    if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                    let updata = data.responseBody.data
-                    
-                    this.setState({
-                        title: updata.subtitle,
-                        productName: updata.productName,
-                        productPlane: updata.productionPlace,
-                        productCompany: updata.productionCompany,
-                        productExplain: updata.description,
-                        paramsNum: updata.otherParamList,
-                        defineSelect: updata.productTypeId,
-                        fileList: updata.attachmentList.map((v)=>{
-                            return {
-                                uid: v.id,
-                                name: v.name,
-                                url: v.url
-                            }
-                        })
-                    })
-                })
-            }
-        });
-    }
-
-    // 启用禁用
-    changeStatusModal = (e, type) => {
-        let _this = this;
-        confirm({
-            title: `是否确认${type.enable == 1 ? '禁用' : '启用'}?`,
-            maskClosable: true,
-            icon: <Icon type="warning" />,
-            onOk() {
-                axios.post('/admin/product/updEnable', {
-                    enable: type.enable == 1 ? 2 : 1,
-                    id: type.id
-                }).then(({ data }) => {
-                    if (data.code !== "200") return message.error(data.message);
-                    if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                    message.success('修改成功');
-                    if (_this.state.royaltyType == '0') _this.init()
-                    else _this.axiosSelect()
-                })
-            },
-            onCancel() {
-            },
-        });
-    }
-
     // 点击搜索
     searchQuery = (v, type) => {
-        let { pageNum, pageSize, proId, royaltyType } = this.state;
+        let { pageNum, pageSize, proId } = this.state;
         if (type == 'father') {
             axios.post('/admin/product/list', {
-                enable: royaltyType == "0" ? "" : royaltyType,
+                enable: '',
                 pageNum,
                 pageSize,
                 id: v
@@ -338,14 +247,13 @@ class ProductMsgCtrl extends Component {
 
     // 重置
     reset = (type) => this.setState({ query: '', pageNum: 1, royaltyType: '0' }, () => {
-        if (type == 'father') this.init();
+        if (type == 'son') this.sizeList();
     })
 
     // 更改选择器
     changeSelect = v => this.setState({ royaltyType: v, pageNum: 1 }, () => this.axiosSelect());
 
     axiosSelect = e => { // 更改选择器交互
-        debugger
         let { pageNum, pageSize, royaltyType } = this.state;
 
         let dataList = {
@@ -648,19 +556,24 @@ class ProductMsgCtrl extends Component {
         return (
             <div className="view">
                 <Fragment>
+                    {/* 返回上一级 */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                        <Button type="primary" className="ml15" onClick={() => this.goBack(true)}> 返回上一级 </Button>
+                        <div style={{ marginLeft: '20px', fontSize: '16px' }}>产品名称: {proName} </div>
+                    </div>
                     {/* 顶部搜索框 */}
                     <div className="searchLayer">
                         <div className="mb15">
-                            <Search style={{ width: 250 }} placeholder="请输入产品ID" value={this.state.query} onChange={this.changeQeury} onSearch={e => this.searchQuery(e, 'father')} enterButton />
-                            <Button type="primary" className="ml15" onClick={() => this.reset('father')}>重置</Button>
-                            <Button type="primary" className="ml15" onClick={() => this.changeProductModal(true, 1)}>产品添加</Button>
+                            <Search style={{ width: 250 }} placeholder="请输入规格名称" value={this.state.query} onChange={this.changeQeury} onSearch={e => this.searchQuery(e, 'son')} enterButton />
+                            <Button type="primary" className="ml15" onClick={() => this.reset('son')}>重置</Button>
+                            <Button type="primary" className="ml15" onClick={() => this.addParticulars(true, 1)}>规格添加</Button>
                         </div>
                         <div className="mb15">
-                            <span className="tip mr15 ">状态:</span>
+                            <span className="tip mr15 ">预约状态:</span>
                             <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.royaltyType} onChange={this.changeSelect}>
                                 <Option value="0">全部</Option>
-                                <Option value="1">启用</Option>
-                                <Option value="2">关闭</Option>
+                                <Option value="1">可预约</Option>
+                                <Option value="2">不可预约</Option>
                             </Select>
                         </div>
                     </div>
@@ -669,10 +582,10 @@ class ProductMsgCtrl extends Component {
                     <div style={{ textAlign: 'center' }}>
                         <Table
                             bordered
-                            dataSource={this.state.data}
-                            columns={this.columns}
+                            dataSource={this.state.sizeData}
+                            columns={this.childColumns}
                             pagination={{
-                                total: this.state.total,
+                                total: this.state.sizeDotal,
                                 pageSize: this.state.pageSize,
                                 onChange: this.changePage,
                                 current: this.state.pageNum,
@@ -684,54 +597,86 @@ class ProductMsgCtrl extends Component {
                         />
                     </div>
 
-                    {/* 产品信息添加/编辑 */}
+                    {/* 规格添加/编辑 */}
                     <Modal
-                        title={isAddProduct === 1 ? "产品信息添加" : "产品信息编辑"}
-                        visible={this.state.productModal}
+                        title={isAddProduct === 1 ? "规格添加" : "规格编辑"}
+                        visible={this.state.particularsModal}
                         onOk={this.handleProductModal}
-                        onCancel={() => this.changeProductModal(false)}
+                        onCancel={() => this.addParticulars(false)}
                     >
+
                         <div className="mb15">
-                            <span className="fw600" style={{ display: 'inline-block', width: 80 }}>产品类型</span>
-                            <Select value={!defineSelect ? '请选择' : defineSelect} style={{ width: 120 }} onChange={this.changeSelectType}>
-                                {
-                                    selectData.map(v => <Option key={v.id} value={v.id}>{v.typeName}</Option>)
-                                }
-                            </Select>
+                            <span className="fw600" style={{ display: 'inline-block', width: 80 }}>规格名称</span>
+                            <Input style={{ width: 280 }} type="text" value={this.state.sizeName} onChange={e => this.changeProductInput(e, 'sizeName')} />
                         </div>
                         <div className="mb15">
-                            <span className="fw600" style={{ display: 'inline-block', width: 80 }}>产品名称</span>
-                            <Input style={{ width: 280 }} type="text" value={this.state.productName} onChange={e => this.changeProductInput(e, 'productName')} />
+                            <span className="fw600" style={{ display: 'inline-block', width: 80, verticalAlign: 'top' }}>市场单价</span>
+                            <Input rows={3} type="number" style={{ width: 280 }} value={this.state.marketPrice} onChange={e => this.changeProductInput(e, 'marketPrice')} />
                         </div>
                         <div className="mb15">
-                            <span className="fw600" style={{ display: 'inline-block', width: 80, verticalAlign: 'top' }}>副标题</span>
-                            <Input rows={3} style={{ width: 360 }} value={this.state.title} onChange={e => this.changeProductInput(e, 'title')} />
+                            <span className="fw600" style={{ display: 'inline-block', width: 80 }}>基础单价</span>
+                            <Input style={{ width: 280 }} type="number" value={this.state.besicsPrice} onChange={e => this.changeProductInput(e, 'besicsPrice')} />
                         </div>
                         <div className="mb15">
-                            <span className="fw600" style={{ display: 'inline-block', width: 80, verticalAlign: 'top' }}>产品说明</span>
-                            <TextArea rows={3} style={{ width: 360 }} value={this.state.productExplain} onChange={e => this.changeProductInput(e, 'productExplain')} />
+                            <span className="fw600" style={{ display: 'inline-block', width: 80 }}>成本单价</span>
+                            <Input style={{ width: 280 }} type="number" value={this.state.costPrice} onChange={e => this.changeProductInput(e, 'costPrice')} />
                         </div>
                         <div className="mb15">
-                            <span className="fw600" style={{ display: 'inline-block', width: 80 }}>产地</span>
-                            <Input style={{ width: 280 }} type="text" value={this.state.productPlane} onChange={e => this.changeProductInput(e, 'productPlane')} />
+                            <span className="fw600" style={{ display: 'inline-block', width: 80 }}>增值百分比</span>
+                            <Input style={{ width: 280 }} type="number" value={this.state.addPercent} onChange={e => this.changeProductInput(e, 'addPercent')} />
+                        </div>
+                        <div className='mb15'>
+                            <Checkbox style={{ display: 'inline-block', width: 80 }} checked={appointmentInput} onChange={this.onAppointmentChange}>预约</Checkbox>
+                            {
+                                appointmentInput ?
+                                    <Input style={{ width: 280 }} type="number" value={this.state.appointmentPrice} onChange={e => this.changeProductInput(e, 'appointmentPrice')} /> : null
+                            }
                         </div>
                         <div className="mb15">
-                            <span className="fw600" style={{ display: 'inline-block', width: 80 }}>生产公司</span>
-                            <Input style={{ width: 280 }} type="text" value={this.state.productCompany} onChange={e => this.changeProductInput(e, 'productCompany')} />
-                        </div>
-                        <div className="mb15">
-                            <span className="fw600" style={{ display: 'inline-block', width: 210 }}>其他参数: {paramsNum.length}/9(可以一个不填)</span>
-                            <span onClick={this.addParams} style={{ color: 'skyblue', cursor: 'pointer' }}>添加参数</span>
+                            <span className="fw600" style={{ display: 'inline-block', width: 210 }}>添加细分类: {paramsNum.length}/9(可以一个不填)</span>
+                            <span onClick={() => this.addParams('xifen')} style={{ color: 'skyblue', cursor: 'pointer' }}>添加细分类</span>
                         </div>
                         {
                             paramsNum.map((v, i) =>
                                 <Fragment key={i}>
                                     <div >
-                                        <span>参数名称 </span>
-                                        <Input value={v.name} onChange={e => this.changeParamsInput(e, i, 'name', 'paramsNum')} style={{ width: 100, margin: '0 10px 0 5px' }} type="text" />
-                                        <span >参数内容 </span>
-                                        <Input value={v.content} onChange={e => this.changeParamsInput(e, i, 'content', 'paramsNum')} style={{ width: 100, margin: '0 10px 0 5px' }} type="text" />
-                                        <Icon style={{ cursor: 'pointer' }} onClick={() => this.delParams(i)} type="minus-circle" />
+                                        <div>
+                                            <span>细分规格名称 </span>
+                                            <Input style={{ width: 100, margin: '0 10px 0 5px' }} value={v.name} onChange={e => this.changeParamsInput(e, i, 'name', 'paramsNum')} type="text" />
+                                            <span >增加单价 </span>
+                                            <Input style={{ width: 100, margin: '0 10px 0 5px' }} value={v.addPrice} onChange={e => this.changeParamsInput(e, i, 'addPrice', 'paramsNum')} type="number" />
+                                        </div>
+                                        <div>
+                                            <span>增加成本 </span>
+                                            <Input style={{ width: 100, margin: '0 10px 0 5px' }} value={v.addCost} onChange={e => this.changeParamsInput(e, i, 'addCost', 'paramsNum')} type="number" />
+                                            <span >增加增值比例 </span>
+                                            <Input style={{ width: 100, margin: '0 10px 0 5px' }} value={v.addIncrementRate} onChange={e => this.changeParamsInput(e, i, 'addIncrementRate', 'paramsNum')} type="number" />
+                                            <Icon style={{ cursor: 'pointer' }} onClick={() => this.delParams(i, 'xifen')} type="minus-circle" />
+                                        </div>
+                                    </div>
+                                    <hr />
+                                </Fragment>
+                            )
+                        }
+                        <div className="mb15">
+                            <span className="fw600" style={{ display: 'inline-block', width: 210 }}>添加包装类型: {packageType.length}/9(必须填一个)</span>
+                            <span onClick={() => this.addParams('package')} style={{ color: 'skyblue', cursor: 'pointer' }}>添加包装类型</span>
+                        </div>
+                        {
+                            packageType.map((v, i) =>
+                                <Fragment key={i}>
+                                    <div >
+                                        <div>
+                                            <span>包装规格名称 </span>
+                                            <Input style={{ width: 100, margin: '0 10px 0 5px' }} value={v.name} onChange={e => this.changeParamsInput(e, i, 'name', 'packageType')} type="text" />
+                                            <span >增加单价 </span>
+                                            <Input style={{ width: 100, margin: '0 10px 0 5px' }} value={v.addPrice} onChange={e => this.changeParamsInput(e, i, 'addPrice', 'packageType')} type="number" />
+                                        </div>
+                                        <div>
+                                            <span>增加成本 </span>
+                                            <Input style={{ width: 100, margin: '0 10px 0 5px' }} value={v.addCost} onChange={e => this.changeParamsInput(e, i, 'addCost', 'packageType')} type="number" />
+                                            <Icon style={{ cursor: 'pointer' }} onClick={() => this.delParams(i, 'package')} type="minus-circle" />
+                                        </div>
                                     </div>
                                     <hr />
                                 </Fragment>
@@ -758,7 +703,7 @@ class ProductMsgCtrl extends Component {
                             </Modal>
                         </div>
                     </Modal>
-                </Fragment> 
+                </Fragment>
             </div>
         )
     }

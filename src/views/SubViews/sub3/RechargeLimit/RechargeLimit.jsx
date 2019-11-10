@@ -9,7 +9,9 @@ class RechargeLimit extends Component {
         this.state = {
             isModel: false, // 模态框
             data: [], // 数据
-            info: null, // 内容
+            info: {}, // 内容
+            quota: 0,
+            rate: 0,
             paramValue: '', // 输入框
         };
 
@@ -17,23 +19,22 @@ class RechargeLimit extends Component {
             {
                 title: '预充值额度',
                 align: 'center',
-                dataIndex: 'dictDesc',
-                key: 'dictDesc'
+                dataIndex: 'quota',
+                key: 'quota'
             },
             {
                 title: '增值比例',
                 align: 'center',
-                dataIndex: '2',
-                key: '2'
+                dataIndex: 'rate',
+                key: 'rate'
             },
             {
                 title: '操作',
                 align: 'center',
-                dataIndex: 'paramCode',
-                key: 'paramCode',
+                dataIndex: 'dictTypeCode',
+                key: 'dictTypeCode',
                 render: (text, rowData, index) => text === 'INVESTMENT_QUOTA_0' ? null : (
                     <Button type="link" onClick={() => this.showModal(rowData)}>编辑额度</Button>
-                    // <span className='color' onClick={() => this.showModal(rowData)}>编辑额度</span>
                 )
             }
         ];
@@ -48,55 +49,52 @@ class RechargeLimit extends Component {
             .then(({ data }) => {
                 if (data.code !== "200") return message.error(data.message);
                 if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                console.log(data);
-                
                 this.setState({ data: data.responseBody.data});
             })
     }
 
     showModal = info => { // 显示模态框
-
-        let { paramValue } = this.setState;
-
-        paramValue = info.paramValue;
-
         this.setState({
             isModel: true,
             info,
-            paramValue
+            quota: info.quota,
+            rate: info.rate,
         });
     }
 
     handleOk = (e) => { // 模态框确认
 
-        // let { info, paramValue } = this.state;
+        let { info, quota, rate } = this.state;
 
-        // if (paramValue % 1 !== 0) return message.error('请输入整数');
+        if (!/^([0-9]\d*(\.\d*[1-9])?)/.test(quota)) return message.error('请输入正确的额度，大于0');
 
-        // let data = { paramValue, paramCode: info.paramCode };
+        if (!/^(([0-9]|([1-9][0-9]{0,9}))((\.[0-9]{1,4})?))$/.test(rate)) return message.error('请输入正确的增值比例，最多四位小数');
 
-        // axios.post('/rechargerecord/sysparam/quota/upd', data)
-        //     .then(({ data }) => {
-        //         if (data.status !== "200") return message.error(data.error);
-        //         message.success('操作成功');
-        //         this.setState({
-        //             isModel: false,
-        //             info: null,
-        //             paramValue: ''
-        //         }, () => this.init());
-        //     })
+        let data = { dictTypeCode: info.dictTypeCode, quotaDictVo: { quota: Number(quota), rate: Number(rate)}}
+        axios.post('/admin/rechargeOrder/updquota', data)
+            .then(({ data }) => {
+                if (data.code !== "200") return message.error(data.message);
+                message.success(data.message);
+                this.setState({
+                    isModel: false,
+                    info: {},
+                    quota: 0,
+                    rate: 0,
+                }, () => this.init());
+            })
     }
 
     handleCancel = (e) => { // 模态框取消
         this.setState({
             isModel: false,
-            info: null,
-            paramValue: ''
+            info: {},
+            quota: 0,
+            rate: 0,
         });
     }
 
     // 更改输入框值
-    changeValue = e => this.setState({ paramValue: e.target.value });
+    changeValue = (e, type) => this.setState({ [type]: e.target.value });
 
     render() {
         return (
@@ -118,11 +116,11 @@ class RechargeLimit extends Component {
                 >
                     <div className="mb15">
                         <span className="ml20 optionTip" style={{ marginLeft: 70 }}>输入额度:</span>
-                        <Input placeholder="输入额度不能为0" style={{ width: '50%', marginLeft: 20 }} value={this.state.paramValue} onChange={e => this.changeValue(e)} />
+                        <Input placeholder="输入额度不能为0" style={{ width: '50%', marginLeft: 20 }} value={this.state.quota} onChange={e => this.changeValue(e, "quota")} />
                     </div>
                     <div>
                         <span className="ml20 optionTip" style={{ marginLeft: 70 }}>增值比例:</span>
-                        <Input placeholder="输入额度不能为0" style={{ width: '50%', marginLeft: 20 }} value={this.state.paramValue} onChange={e => this.changeValue(e)} />
+                        <Input placeholder="输入额度不能为0" style={{ width: '50%', marginLeft: 20 }} value={this.state.rate} onChange={e => this.changeValue(e, "rate")} />
                     </div>
 
                 </Modal>
