@@ -16,14 +16,14 @@ class DiscountCoupon extends Component {
             pageNum: 1, // 当前页码
             pageSize: 10, // 每页条数
             total: 1, // 总数
-            storeType: '0', // 作用类型 0 全部 1 产品类型 2 预约类型
-            orderType: '0', // 产品类型 0 全部 1 产品类型XX 2 产品类型XXX
-            ditchType: '0', // 启用状态 0 全部 1 启用 2 禁用
+            storeType: '', // 作用类型 0 全部 1 产品类型 2 预约类型
+            productTypeId: '', // 产品类型 0 全部 1 产品类型XX 2 产品类型XXX
+            enable: '', // 启用状态 0 全部 1 启用 2 禁用
             data: [], // 列表数据
             productTypeList: [], // 产品类型数据
             modal: false, // 优惠券添加模态框 true 显示 false 隐藏
             effectType: '1', // 作用类型 0 产品购买 1 预约支付
-            productType: '0', // 产品类型 0 全部 1 产品类型名称XX 2 产品类型名称XXX
+            productType: '', // 产品类型 0 全部 1 产品类型名称XX 2 产品类型名称XXX
             useLimit: '', // 使用额度
             discount: '', // 折扣
             derate: '', // 减额
@@ -38,65 +38,87 @@ class DiscountCoupon extends Component {
                 key: 1,
             },
             {
-                title: '优惠券类型',
-                dataIndex: 's',
+                title: '作用类型',
+                dataIndex: 'scopeType',
                 align: 'center',
-                key: 2
+                key: 2,
+                render: (t, r, i) => (
+                    <>
+                        <span>{t == 1 ? "产品购买": "预约支付"}</span>
+                    </>
+                )
             },
             {
                 title: '产品涵盖',
-                dataIndex: 'd',
+                dataIndex: 'productTypeId',
                 align: 'center',
-                key: 3
+                key: 3,
+                render: (t, r, i) => (
+                    <>
+                        <span>{t == 0 ? "全部": r.typeName}</span>
+                    </>
+                )
             },
             {
                 title: '使用额度',
-                dataIndex: 'f',
+                dataIndex: 'useQuota',
                 align: 'center',
                 key: 4
             },
             {
                 title: '折扣',
-                dataIndex: 'g',
+                dataIndex: 'discount',
                 align: 'center',
                 key: 5
             },
             {
                 title: '减额',
-                dataIndex: 'h',
+                dataIndex: 'subtractQuota',
                 align: 'center',
                 key: 6
             },
             {
                 title: '时限',
-                dataIndex: 'j',
+                dataIndex: 'validDay',
                 align: 'center',
                 key: 7
             },
             {
                 title: '创建时间',
-                dataIndex: 'k',
+                dataIndex: 'createdTime',
                 align: 'center',
                 key: 8
             },
             {
                 title: '启用状态',
-                dataIndex: 'k',
+                dataIndex: 'enable',
                 align: 'center',
-                key: 9
+                key: 9,
+                render: (t, r, i) => (
+                    <>
+                    {
+                        t === 1 ? <span className="ant-btn-link">启用</span> : <span>禁用</span>
+                    }
+                    </>
+                )
             },
             {
                 title: '更新时间',
-                dataIndex: 'l',
+                dataIndex: 'updatedTime',
                 align: 'center',
                 key: 10
             },
             {
                 title: '操作',
-                dataIndex: 'p',
                 align: 'center',
                 key: 20,
-                render: text => text === 1 ? <Button type="link" onClick={() => this.changeStatus(false)}>禁用</Button> : <Button type="link" onClick={() => this.changeStatus(true)}>启用</Button>
+                render: (t, r, i) => (
+                    <>
+                    {
+                        t === 1 ? <Button type="link" onClick={() => this.changeStatus(r)}>启用</Button> : <Button type="link" onClick={() => this.changeStatus(r)}>禁用</Button>
+                    }
+                    </>
+                )
             }
         ]
     }
@@ -111,7 +133,7 @@ class DiscountCoupon extends Component {
                 if (data.code !== '200') return message.error(data.message);
                 if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
                 data.responseBody.data.unshift({
-                    id: '0',
+                    id: '',
                     typeName: '全部'
                 })
                 this.setState({ productTypeList: data.responseBody.data })
@@ -121,12 +143,12 @@ class DiscountCoupon extends Component {
     }
 
     allDataAxios = () => { // 获取所有数据接口
-        let { pageNum, pageSize, storeType, ditchType, orderType } = this.state;
+        let { pageNum, pageSize, storeType, enable, productTypeId } = this.state;
         axios.post('/admin/coupon/list', {
-            enable: ditchType,
+            enable: enable,
             pageNum,
             pageSize,
-            productTypeId: orderType,
+            productTypeId: productTypeId,
             scopeType: storeType
         })
             .then(({ data }) => {
@@ -145,32 +167,24 @@ class DiscountCoupon extends Component {
 
     /**
      * 更改启用状态
-     * @param {*} status true 为启用 false 禁用
+     * @param {*} enable 1 为启用 2 禁用
      */
-    changeStatus = status => {
-        if (status) {
-            confirm({
-                title: '是否确认启用?',
-                maskClosable: true,
-                onOk() {
-                    console.log('OK');
-                },
-                onCancel() {
-                    console.log('Cancel');
-                },
-            });
-        } else {
-            confirm({
-                title: '是否确认禁用?',
-                maskClosable: true,
-                onOk() {
-                    console.log('OK');
-                },
-                onCancel() {
-                    console.log('Cancel');
-                },
-            });
-        }
+    changeStatus = r => {
+        var that = this;
+        confirm({
+            title: `是否确认${r.enable == 1 ? "启用" : "禁用"}?`,
+            maskClosable: true,
+            onOk() {
+                axios.post('/admin/shop/updEnable', { 
+                    id: r.id,
+                    enable: 2
+                }).then(({ data }) => {
+                    if (data.code !== "200") return message.error(data.message);
+                    if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+                    this.setState({ pageNum: 1, storeType: '', enable: '', productTypeId: '' }, () => that.init() );
+                })
+            }
+        });
     }
 
     /**
@@ -217,7 +231,7 @@ class DiscountCoupon extends Component {
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
             message.success('添加成功')
-            this.setState({ modal: false, effectType: '1', productType: '0', useLimit: '', discount: '', derate: '', timeLimit: '', orderType: '0' },()=> this.init())
+            this.setState({ modal: false, effectType: '1', productType: '0', useLimit: '', discount: '', derate: '', timeLimit: '', productTypeId: '' },()=> this.init())
         })
 
         
@@ -232,19 +246,19 @@ class DiscountCoupon extends Component {
                     <div className="mb15">
                         <span className="tip mr15">作用类型:</span>
                         <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.storeType} onChange={v => this.changeSelect(v, 'storeType')}>
-                            <Option value="0">全部</Option>
-                            <Option value="1">产品类型</Option>
-                            <Option value="2">预约类型</Option>
+                            <Option value="">全部</Option>
+                            <Option value="1">产品购买</Option>
+                            <Option value="2">预约支付</Option>
                         </Select>
                         <span className="ml15 tip mr15">产品类型:</span>
-                        <Select defaultValue='全部' style={{ width: 160 }} onChange={v => this.changeSelect(v, 'orderType')}>
+                        <Select defaultValue='全部' style={{ width: 160 }} onChange={v => this.changeSelect(v, 'productTypeId')}>
                             {
                                 this.state.productTypeList.map(v => <Option key={v.id} value={v.id}>{v.typeName}</Option>)
                             }
                         </Select>
                         <span className="ml15 tip mr15">启用状态:</span>
-                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.ditchType} onChange={v => this.changeSelect(v, 'ditchType')}>
-                            <Option value="0">全部</Option>
+                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.enable} onChange={v => this.changeSelect(v, 'enable')}>
+                            <Option value="">全部</Option>
                             <Option value="1">启用</Option>
                             <Option value="2">禁用</Option>
                         </Select>
@@ -258,7 +272,6 @@ class DiscountCoupon extends Component {
                         bordered
                         dataSource={this.state.data}
                         columns={this.columns}
-                        size="small"
                         pagination={{
                             total: this.state.total,
                             pageSize: this.state.pageSize,

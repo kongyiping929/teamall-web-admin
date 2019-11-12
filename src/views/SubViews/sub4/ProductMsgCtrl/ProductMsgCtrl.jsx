@@ -52,6 +52,7 @@ class ProductMsgCtrl extends Component {
             urlData: [], // 照片url集合
             fileList: [], // 上传文件列表
             scrollTop: localStorage.getItem("scrollTop") != null ? localStorage.getItem("scrollTop") : 0,
+            soureFileList: []
         }
 
         this.columns = [ // 定义列表数据
@@ -61,8 +62,13 @@ class ProductMsgCtrl extends Component {
                 align: 'center'
             },
             {
-                title: '产品类型',
+                title: '产品名称',
                 dataIndex: 'typeName',
+                align: 'center'
+            },
+            {
+                title: '产品类型',
+                dataIndex: 'productName',
                 align: 'center'
             },
             {
@@ -267,11 +273,18 @@ class ProductMsgCtrl extends Component {
                         productExplain: updata.description,
                         paramsNum: updata.otherParamList,
                         defineSelect: updata.productTypeId,
+                        soureFileList: updata.attachmentList.map((v)=>{
+                            return {
+                                id: v.id,
+                                name: v.oldName,
+                                url: v.url
+                            }
+                        }),
                         fileList: updata.attachmentList.map((v)=>{
                             return {
                                 uid: v.id,
-                                name: v.name,
-                                url: v.url
+                                name: v.oldName,
+                                url: 'http://' + v.url
                             }
                         })
                     })
@@ -423,8 +436,7 @@ class ProductMsgCtrl extends Component {
 
     // 模态框确认
     handleProductModal = () => {
-        let { urlData, updateUrlData, isAddProduct, title, productName, productPlane, productCompany, productExplain, paramsNum, productTypeId, royaltyType, childFlag, sizeName, marketPrice, besicsPrice, costPrice, addPercent, packageType, proId, appointmentPrice, appointmentInput, sizeData, defineSelect, proSizeId } = this.state;
-
+        let { soureFileList, urlData, updateUrlData, isAddProduct, title, productName, productPlane, productCompany, productExplain, paramsNum, productTypeId, royaltyType, childFlag, sizeName, marketPrice, besicsPrice, costPrice, addPercent, packageType, proId, appointmentPrice, appointmentInput, sizeData, defineSelect, proSizeId } = this.state;
         if (childFlag && isAddProduct == 1) { // 产品添加
             if (!title.trim()) return message.error('副标题不能为空');
             if (!productName.trim()) return message.error('产品名称不能为空');
@@ -432,9 +444,8 @@ class ProductMsgCtrl extends Component {
             if (!productCompany.trim()) return message.error('生产公司不能为空');
             if (!productExplain.trim()) return message.error('产品说明不能为空');
             if (!urlData.length) return message.error('图片不能为空');
-
             var addList = { // 新增
-                attachmentInfoList: urlData,
+                attachmentInfoList: soureFileList.concat(urlData),
                 productName,
                 otherParamList: paramsNum,
                 description: productExplain,
@@ -447,7 +458,7 @@ class ProductMsgCtrl extends Component {
 
         if (childFlag && isAddProduct == 2) { // 产品编辑
             var updateList = { // 编辑
-                attachmentInfoList: updateUrlData,
+                attachmentInfoList: soureFileList.concat(updateUrlData),
                 productName,
                 otherParamList: paramsNum,
                 description: productExplain,
@@ -618,10 +629,12 @@ class ProductMsgCtrl extends Component {
                         if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
                         isAddProduct === 1 ? urlData.push({
                             url: data.responseBody.data,
-                            name: file.name
+                            name: file.name,
+                            id: file.uid
                         }) : updateUrlData.push({
                             url: data.responseBody.data,
-                            name: file.name
+                            name: file.name,
+                            id: file.uid
                         })
                         message.success('图片上传成功')
                         this.setState({ urlData, updateUrlData })

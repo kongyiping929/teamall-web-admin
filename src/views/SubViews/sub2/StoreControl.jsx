@@ -177,6 +177,7 @@ class StoreControl extends Component {
 
     // 店铺解除
     changeDelete = (e, r) => {
+        var that = this;
         confirm({
             title: '是否确认解除合作?',
             maskClosable: true,
@@ -186,10 +187,9 @@ class StoreControl extends Component {
                     id: r.id,
                     enable: 2
                 }).then(({ data }) => {
-                    console.log(data);
                     if (data.code !== "200") return message.error(data.message);
                     if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                    console.log(data);
+                    that.reset();
                 })
             }
         });
@@ -250,8 +250,8 @@ class StoreControl extends Component {
     }
 
     // 重置
-    reset = (type) => {
-        if (type === 'father') this.setState({ query: '', currentPage: 1, province: '0' }, () => this.pageData());
+    reset = () => {
+        this.setState({ query: '', currentPage: 1, province: '0' }, () => this.pageData());
     }
 
     // 添加店铺
@@ -373,7 +373,7 @@ class StoreControl extends Component {
                     <div className="searchLayer">
                         <div className="mb15">
                             <Search style={{ width: 250 }} placeholder="请输入店铺名称" value={this.state.query} onChange={e => this.changeQeury(e, 'father')} onSearch={e => this.searchQuery(e, 'father')} enterButton />
-                            <Button type="primary" className="ml15" onClick={() => this.reset('father')}>重置</Button>
+                            <Button type="primary" className="ml15" onClick={() => this.reset()}>重置</Button>
                             <Button type="primary" className="ml15" onClick={() => this.addStore('addStore')}>添加店铺</Button>
                         </div>
                         <div className="mb15">

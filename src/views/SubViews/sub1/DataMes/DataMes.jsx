@@ -133,7 +133,16 @@ class DataMes extends Component {
 
     // 导出
     exportXlxs = () => {
-        console.log('导出')
+        let { query, pageNum, pageSize } = this.state;
+         axios.get('/admin/userAccount/export', {
+             keyword: query,
+             pageNum,
+             pageSize
+         }).then(({data}) => {
+            if (data.code !== "200") return message.error(data.message);
+            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+             window.location.href = `${URL}${'/admin/userAccount/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}`;
+         })
     }
 
     // 更改页码

@@ -112,22 +112,20 @@ class UserMes extends Component {
     exportXlxs = () => {
         let { query, pageNum, times, pageSize, accountType } = this.state;
 
-        // axios.get('/admin/user/export', {
-        //     keyword: query,
-        //     pageNum,
-        //     pageSize,
-        //     startTime: times.length ? times[0].format('YYYY-MM-DD') : '',
-        //     endTime: times.length ? times[1].format('YYYY-MM-DD') : '',
-        //     userStatus: accountType
-        // }).then(({data}) => {
-        //     console.log(data);
-            
-        //     this.setState({ url: data }, () => window.location.href = url)
-        // })
+         /* axios.get('/admin/user/export', {
+             keyword: query,
+             pageNum,
+             pageSize,
+             startTime: times.length ? times[0].format('YYYY-MM-DD') : '',
+             endTime: times.length ? times[1].format('YYYY-MM-DD') : '',
+             userStatus: accountType
+         }).then(({data}) => {
+            if (data.code !== "200") return message.error(data.message);
+            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+             window.location.href = `${URL}${'/admin/user/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&userStatus=${accountType}`;
+         }) */
 
         let url = `${URL}${'/admin/user/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&userStatus=${accountType}`;
-        console.log(url);
-        debugger
         window.location.href = url;
     }
 
