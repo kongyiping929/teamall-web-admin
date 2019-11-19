@@ -17,7 +17,7 @@ class UserMes extends Component {
             pageSize: 10, // 每页条数
             total: 1, // 总数
             todayCount: '', // 今日注册用户总数
-            accountType: '0', // 0 全部 1 启用 2 封禁
+            userStatus: '', // 0 全部 1 启用 2 封禁
             data: [], // 列表数据
             url: '', // 导出数据
         }
@@ -73,14 +73,14 @@ class UserMes extends Component {
     }
 
     init = () => {
-        let { pageNum, pageSize, times, query, accountType } = this.state;
+        let { pageNum, pageSize, times, query, userStatus } = this.state;
         axios.post('/admin/user/list', {
             keyword: query,
             pageNum,
             pageSize,
             endTime: !times.length ? '' : times[1].format('YYYY-MM-DD'),
             startTime: !times.length ? '' : times[0].format('YYYY-MM-DD'),
-            userStatus: accountType, 
+            userStatus: userStatus, 
         }).then(({ data }) => { // 获取列表数据
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
@@ -106,31 +106,27 @@ class UserMes extends Component {
     changeTime = date => this.setState({ times: date }, () => this.init());
 
     // 重置
-    reset = () => this.setState({ query: '', times: [], pageNum: 1, accountType: '0' }, () => this.init())
+    reset = () => this.setState({ query: '', times: [], pageNum: 1, userStatus: '' }, () => this.init())
 
     // 导出
     exportXlxs = () => {
-        let { query, pageNum, times, pageSize, accountType } = this.state;
-
-         /* axios.get('/admin/user/export', {
-             keyword: query,
-             pageNum,
-             pageSize,
-             startTime: times.length ? times[0].format('YYYY-MM-DD') : '',
-             endTime: times.length ? times[1].format('YYYY-MM-DD') : '',
-             userStatus: accountType
+         let { query, pageNum, times, pageSize, userStatus } = this.state;
+        axios.post('/admin/user/export', {
+            keyword: query,
+            pageNum,
+            pageSize,
+            startTime: times.length ? times[0].format('YYYY-MM-DD') : '',
+            endTime: times.length ? times[1].format('YYYY-MM-DD') : '',
+            userStatus: userStatus
          }).then(({data}) => {
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-             window.location.href = `${URL}${'/admin/user/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&userStatus=${accountType}`;
-         }) */
-
-        let url = `${URL}${'/admin/user/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&userStatus=${accountType}`;
-        window.location.href = url;
+            window.open(`${URL}${'admin/user/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&userStatus=${userStatus}`,'_blank');
+         });
     }
 
     // 更改选择器
-    changeSelect = v => this.setState({ accountType: v }, () => this.init());
+    changeSelect = v => this.setState({ userStatus: v }, () => this.init());
 
     // 更改页码
     changePage = v => this.setState({ pageNum: v }, () => this.init())
@@ -150,8 +146,8 @@ class UserMes extends Component {
                     </div>
                     <div className="mb15">
                         <span className="tip mr15 ">启用状态:</span>
-                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.accountType} onChange={this.changeSelect}>
-                            <Option value="0">全部</Option>
+                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.userStatus} onChange={this.changeSelect}>
+                            <Option value="">全部</Option>
                             <Option value="1">启用</Option>
                             <Option value="2">封禁</Option>
                         </Select>

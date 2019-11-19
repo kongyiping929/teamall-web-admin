@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Input, Button, DatePicker, Select, Table, message } from 'antd';
-import axios from '@axios';
+import axios, { URL } from '@axios';
 
 const { Search } = Input;
 const { RangePicker } = DatePicker;
@@ -134,15 +134,15 @@ class DataMes extends Component {
     // 导出
     exportXlxs = () => {
         let { query, pageNum, pageSize } = this.state;
-         axios.get('/admin/userAccount/export', {
+        axios.post('/admin/userAccount/export', {
              keyword: query,
              pageNum,
              pageSize
          }).then(({data}) => {
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-             window.location.href = `${URL}${'/admin/userAccount/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}`;
-         })
+            window.open(`${URL}${'admin/userAccount/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}`,'_blank');
+         });
     }
 
     // 更改页码

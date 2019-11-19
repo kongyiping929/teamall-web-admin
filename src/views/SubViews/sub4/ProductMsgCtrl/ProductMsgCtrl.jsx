@@ -63,12 +63,12 @@ class ProductMsgCtrl extends Component {
             },
             {
                 title: '产品名称',
-                dataIndex: 'typeName',
+                dataIndex: 'productName',
                 align: 'center'
             },
             {
                 title: '产品类型',
-                dataIndex: 'productName',
+                dataIndex: 'typeName',
                 align: 'center'
             },
             {

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Input, Button, DatePicker, Select, Table, Modal, Icon, message } from 'antd';
-import axios from '@axios';
+import axios, {URL} from '@axios';
 
 const { Search } = Input;
 const { RangePicker } = DatePicker;
@@ -18,8 +18,8 @@ class Extract extends Component {
             pageNum: 1, // 当前页码
             pageSize: 10, // 每页条数
             total: 1, // 总数
-            accountType: '0', // 0 全部 1 申请中 2 成功 3 失败
-            adminType: '0', // 0 全部 1 非管理 2 管理
+            status: '', // 0 全部 1 申请中 2 成功 3 失败
+            userType: '', // 0 全部 1 非管理 2 管理
             data: [], // 列表数据
         }
 
@@ -84,15 +84,15 @@ class Extract extends Component {
     }
 
     init = () => {
-        let { pageNum, pageSize, times, query, accountType, adminType } = this.state;
+        let { pageNum, pageSize, times, query, status, userType } = this.state;
         axios.post('/admin/withdrawApply/list', {
             endTime: !times.length ? '' : times[1].format('YYYY-MM-DD'),
             keyword: query,
             pageNum,
             pageSize,
             startTime: !times.length ? '' : times[0].format('YYYY-MM-DD'),
-            status: accountType, // 0 全部 1 申请中 2 成功 3 失败
-            userType: adminType, // 0 全部 1 非管理 2 管理
+            status: status, // 0 全部 1 申请中 2 成功 3 失败
+            userType: userType, // 0 全部 1 非管理 2 管理
         }).then(({ data }) => { // 获取列表数据
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
@@ -117,11 +117,24 @@ class Extract extends Component {
     changeTime = date => this.setState({ times: date }, ()=>this.init());
 
     // 重置
-    reset = () => this.setState({ query: '', times: [], pageNum: 1, accountType: '0' }, ()=>this.init())
+    reset = () => this.setState({ query: '', times: [], pageNum: 1, status: '' }, ()=>this.init())
 
     // 导出
     exportXlxs = () => {
-        console.log('导出')
+        let { pageNum, pageSize, times, query, status, userType } = this.state;
+        axios.post('/admin/withdrawApply/export', {
+            keyword: query,
+            pageNum,
+            pageSize,
+            status,
+            userType,
+            startTime: times.length ? times[0].format('YYYY-MM-DD') : '',
+            endTime: times.length ? times[1].format('YYYY-MM-DD') : '',
+         }).then(({data}) => {
+            if (data.code !== "200") return message.error(data.message);
+            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+            window.open(`${URL}${'admin/withdrawApply/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&status=${status}&userType=${userType}`,'_blank');
+         });
     }
 
     // 更改选择器
@@ -162,20 +175,20 @@ class Extract extends Component {
                         <Search style={{ width: 250 }} placeholder="请输入用户ID(绑定手机号)" value={this.state.query} onChange={this.changeQeury} onSearch={this.searchQuery} enterButton />
                         <Button type="primary" className="ml15" onClick={this.reset}>重置</Button>
                         <span className="ml15 tip mr15 mb15">注册时间:</span>
-                        <RangePicker style={{ width: 250 }} value={this.state.times} onChange={this.changeTime} />
+                        <RangePicker style={{ width: 250, verticalAlign: "top" }} value={this.state.times} onChange={this.changeTime} />
                         <Button type="primary" className="ml15" onClick={this.exportXlxs}>导出</Button>
                     </div>
                     <div className="mb15">
                         <span className="tip mr15 ">状态:</span>
-                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.accountType} onChange={v => this.changeSelect(v, 'accountType')}>
-                            <Option value="0">全部</Option>
+                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.status} onChange={v => this.changeSelect(v, 'status')}>
+                            <Option value="">全部</Option>
                             <Option value="1">申请中</Option>
                             <Option value="2">成功</Option>
                             <Option value="3">失败</Option>
                         </Select>
                         <span className="ml15 tip mr15 ">管理员标识:</span>
-                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.adminType} onChange={v => this.changeSelect(v, 'adminType')}>
-                            <Option value="0">全部</Option>
+                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.userType} onChange={v => this.changeSelect(v, 'userType')}>
+                            <Option value="">全部</Option>
                             <Option value="1">非管理</Option>
                             <Option value="2">管理</Option>
                         </Select>

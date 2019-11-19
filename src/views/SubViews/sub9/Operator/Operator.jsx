@@ -16,8 +16,8 @@ class Operator extends Component {
             total: 1, // 总数
             data: [], // 列表数据
             addInput: '', // 添加搜索输入框
-            addSelect: '0', // 添加筛选器
-            addSelectData: [], // 店铺下拉框数据
+            shopId: '', // 添加筛选器
+            shopIdData: [], // 店铺下拉框数据
             addVisible: false, // 添加模态框
             userVisible: false, // 从属用户信息模态框
             query: '', // 搜索
@@ -117,11 +117,11 @@ class Operator extends Component {
                 if (data.code !== '200') return message.error(data.message);
 
                 data.responseBody.data.unshift({
-                    id: '0',
+                    id: '',
                     shopName: '全部'
                 })
 
-                this.setState({ addSelectData: data.responseBody.data })
+                this.setState({ shopIdData: data.responseBody.data })
             })
     }
 
@@ -141,7 +141,7 @@ class Operator extends Component {
     changeInput = (e, field) => this.setState({ [field]: e.target.value, query: e.target.value });
 
     // 更改选择器
-    changeSelect = (value, field) => this.setState({ [field]: value, addSelect: value });
+    changeSelect = (value, field) => this.setState({ [field]: value, shopId: value });
 
     // 移除关系
     removeRelation = id => {
@@ -176,10 +176,10 @@ class Operator extends Component {
 
     // 更改添加模态框状态
     changeAddModal = (status, v) => {
-        let { addSelect, query } = this.state; 
+        let { shopId, query } = this.state; 
         if( v === 'send') {
             axios.post('/admin/shopOperator/add', {
-                shopId: addSelect,
+                shopId: shopId,
                 userId: query
             })
                 .then(({ data }) => {
@@ -189,7 +189,7 @@ class Operator extends Component {
 
                     message.success('添加成功');
 
-                    this.setState({ addSelect: '0', query: '' })
+                    this.setState({ shopId: '', query: '' })
 
                     this.init();
                 })
@@ -253,7 +253,7 @@ class Operator extends Component {
         
     }
     render() {
-        let { addSelectData, addSelect } =  this.state;
+        let { shopIdData, shopId } =  this.state;
         return (
             <div className="view">
 
@@ -295,9 +295,9 @@ class Operator extends Component {
                     </div>
                     <div className="mb15">
                         <span className="mr15">店铺所属</span>
-                        <Select value={addSelect} style={{ width: 200 }} onChange={v => this.changeSelect(v, 'addSelect')}>
+                        <Select value={shopId} style={{ width: 200 }} onChange={v => this.changeSelect(v, 'shopId')}>
                             {
-                                addSelectData.map(v => <Option key={v.id} value={v.id}>{v.shopName}</Option>)
+                                shopIdData.map(v => <Option key={v.id} value={v.id}>{v.shopName}</Option>)
                             }
                         </Select>
                     </div>

@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { Input, Button, DatePicker, Select, Table, Popover, Modal, message } from 'antd';
-import axios from '@axios';
+import axios,{URL} from '@axios';
 
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 const { TextArea } = Input;
 
-const orderTypeArr = ['全部', '待支付', '待发货', '待收货', '已完成', '退款申请', '退款成功', '退款失败', '已取消'];
+const orderStatusArr = ['全部', '待支付', '待发货', '待收货', '已完成', '退款申请', '退款成功', '退款失败', '已取消'];
 
 // 产品订单管理
 class ProductOrder extends Component {
@@ -19,10 +19,10 @@ class ProductOrder extends Component {
             pageNum: 1, // 当前页码
             pageSize: 10, // 每页条数
             total: 0, // 总数
-            storeType: '0', // 店铺类型 0 全部 
-            orderType: '0', // 订单类型 orderTypeArr
-            ditchType: '0', // 发起渠道类型 1-定向 2-用户3-邀请 ,
-            claimType: '0', // 取货类型 0 全部 1 自取 2 快递
+            shopId: '', // 店铺类型 0 全部 
+            orderStatus: '', // 订单类型 orderStatusArr
+            initiationChannel: '', // 发起渠道类型 1-定向 2-用户3-邀请 ,
+            receiveType: '', // 取货类型 0 全部 1 自取 2 快递
             data: [], // 列表数据
             allStore: [], // 所有店铺列表
             remark: '', // 退款备注
@@ -159,7 +159,7 @@ class ProductOrder extends Component {
                 title: '订单状态',
                 dataIndex: 'orderStatus',
                 align: 'center',
-                render: text => orderTypeArr[Number(text)]
+                render: text => orderStatusArr[Number(text)]
             },
             {
                 title: '创建时间',
@@ -212,7 +212,7 @@ class ProductOrder extends Component {
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
             data.responseBody.data.unshift({
-                id: '0',
+                id: '',
                 shopName: '全部'
             })
 
@@ -226,15 +226,15 @@ class ProductOrder extends Component {
 
     // 获取列表数据接口
     allDataAxios = () => {
-        let { pageNum, pageSize, storeType, orderType, ditchType, claimType, times, query } = this.state;
+        let { pageNum, pageSize, shopId, orderStatus, initiationChannel, receiveType, times, query } = this.state;
 
         let allData = { // 所有数据
             pageNum,
             pageSize,
-            shopId: storeType, // 店铺类型 0 全部 
-            orderStatus: orderType, // 订单类型 orderTypeArr
-            initiationChannel: ditchType, // 发起渠道类型 1-定向 2-用户3-邀请 ,
-            receiveType: claimType, // 取货类型 0 全部 1 自取 2 快递
+            shopId: shopId, // 店铺类型 0 全部 
+            orderStatus: orderStatus, // 订单类型 orderStatusArr
+            initiationChannel: initiationChannel, // 发起渠道类型 1-定向 2-用户3-邀请 ,
+            receiveType: receiveType, // 取货类型 0 全部 1 自取 2 快递
             startTime: !times.length ? '' : times[0].format('YYYY-MM-DD'),
             endTime: !times.length ? '' : times[1].format('YYYY-MM-DD'),
             keyword: query.trim()
@@ -263,11 +263,26 @@ class ProductOrder extends Component {
     changeTime = date => this.setState({ times: date }, () => this.allDataAxios());
 
     // 重置
-    reset = () => this.setState({ query: '', times: [], pageNum: 1, storeType: '0', orderType: '0', ditchType: '0', claimType: '0' }, () => this.allDataAxios());
+    reset = () => this.setState({ query: '', times: [], pageNum: 1, shopId: '', orderStatus: '', initiationChannel: '', receiveType: '' }, () => this.allDataAxios());
 
     // 导出
     exportXlxs = () => {
-        console.log('导出')
+        let { pageNum, pageSize, times, query, shopId, orderStatus, initiationChannel, receiveType } = this.state;
+        axios.post('/admin/productOrder/export', {
+            keyword: query,
+            pageNum,
+            pageSize,
+            shopId,
+            orderStatus,
+            initiationChannel,
+            receiveType,
+            startTime: times.length ? times[0].format('YYYY-MM-DD') : '',
+            endTime: times.length ? times[1].format('YYYY-MM-DD') : '',
+         }).then(({data}) => {
+            if (data.code !== "200") return message.error(data.message);
+            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+            window.open(`${URL}${'admin/productOrder/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&shopId=${shopId}&orderStatus=${orderStatus}&initiationChannel=${initiationChannel}&receiveType=${receiveType}`,'_blank');
+         });
     }
 
     // 更改选择器
@@ -302,31 +317,31 @@ class ProductOrder extends Component {
                         <Search style={{ width: 250 }} placeholder="请输入订单ID或用户ID" value={this.state.query} onChange={this.changeQeury} onSearch={this.searchQuery} enterButton />
                         <Button type="primary" className="ml15" onClick={this.reset}>重置</Button>
                         <span className="ml15 tip mr15 mb15">订单建立时间:</span>
-                        <RangePicker style={{ width: 250 }} value={this.state.times} onChange={this.changeTime} />
+                        <RangePicker style={{ width: 250, "verticalAlign": "top" }} value={this.state.times} onChange={this.changeTime} />
                         <Button type="primary" className="ml15" onClick={this.exportXlxs}>导出</Button>
                     </div>
                     <div className="mb15">
                         <span className="tip mr15">店铺:</span>
-                        <Select style={{ width: 120 }} value={this.state.storeType} onChange={v => this.changeSelect(v, 'storeType')}>
+                        <Select style={{ width: 120 }} value={this.state.shopId} onChange={v => this.changeSelect(v, 'shopId')}>
                             {
                                 allStore.map(v => <Option key={v.id} value={v.id}>{v.shopName}</Option>)
                             }
                         </Select>
                         <span className="ml15 tip mr15">订单状态:</span>
-                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.orderType} onChange={v => this.changeSelect(v, 'orderType')}>
+                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.orderStatus} onChange={v => this.changeSelect(v, 'orderStatus')}>
                             {
-                                orderTypeArr.map((item, index) => (<Option value={`${index}`} key={index}>{item}</Option>))
+                                orderStatusArr.map((item, index) => (<Option value={`${index == 0 ? "" : index}`} key={index}>{item}</Option>))
                             }
                         </Select>
                         <span className="ml15 tip mr15">发起渠道:</span>
-                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.ditchType} onChange={v => this.changeSelect(v, 'ditchType')}>
-                            <Option value="0">全部</Option>
+                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.initiationChannel} onChange={v => this.changeSelect(v, 'initiationChannel')}>
+                            <Option value="">全部</Option>
                             <Option value="1">定向</Option>
                             <Option value="2">邀请</Option>
                         </Select>
                         <span className="ml15 tip mr15">取货类型:</span>
-                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.claimType} onChange={v => this.changeSelect(v, 'claimType')}>
-                            <Option value="0">全部</Option>
+                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.receiveType} onChange={v => this.changeSelect(v, 'receiveType')}>
+                            <Option value="">全部</Option>
                             <Option value="1">自取</Option>
                             <Option value="2">快递</Option>
                         </Select>

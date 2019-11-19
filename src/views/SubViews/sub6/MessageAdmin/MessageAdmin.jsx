@@ -16,7 +16,7 @@ class MessageAdmin extends Component {
             times: [], // 时间
             pageNum: 1, // 当前页码
             pageSize: 10, // 每页条数
-            squareId: '0', // 下拉数值，微广场ID
+            squareId: '', // 下拉数值，微广场ID
             total: 1, // 总数
             squareData: [], 
             data: [], // 列表数据
@@ -113,7 +113,7 @@ class MessageAdmin extends Component {
             if (data.code !== '200') return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
             data.responseBody.data.unshift({
-                squareId: '0',
+                squareId: '',
                 squareName: '全部'
             })
             this.setState({squareData: data.responseBody.data});
@@ -181,7 +181,7 @@ class MessageAdmin extends Component {
     }
 
     // 重置
-    reset = () => this.setState({ query: '', times: [], pageNum: 1, squareId: '0' }, () => {this.init()})
+    reset = () => this.setState({ query: '', times: [], pageNum: 1, squareId: '' }, () => {this.init()})
 
     // 更改选择器
     changeSelect = v => {
@@ -212,11 +212,7 @@ class MessageAdmin extends Component {
                             }
                         </Select>
                         <span className="ml15 tip mr15 mb15">时间:</span>
-                        <RangePicker
-                            style={{ width: 250 }}
-                            value={this.state.times}
-                            onChange={this.changeTime}
-                        />
+                        <RangePicker style={{ width: 250, "verticalAlign": "top" }} value={this.state.times} onChange={this.changeTime}/>
                     </div>
                 </div>
 

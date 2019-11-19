@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Input, Button, DatePicker, Select, Table, message } from 'antd';
-import axios from '@axios';
+import axios,{URL} from '@axios';
 
 const { Search } = Input;
 const { RangePicker } = DatePicker;
@@ -13,10 +13,10 @@ class Royalty extends Component {
         this.state = {
             query: '', // 搜索
             times: [], // 时间
-            page: 1, // 当前页码
-            rows: 10, // 每页条数
+            pageNum: 1, // 当前页码
+            pageSize: 10, // 每页条数
             total: 1, // 总数
-            royaltyType: '0', // 0全部-1充值2-产品购买3-预约分红 
+            commissionChannel: '', // 0全部-1充值2-产品购买3-预约分红 
             data: [], // 列表数据
         }
 
@@ -64,14 +64,14 @@ class Royalty extends Component {
     }
 
     init = () => {
-        let { pageNum, pageSize, query, times, royaltyType } = this.state;
-        axios.post('/admin/everydayRelease/list', {
+        let { pageNum, pageSize, query, times, commissionChannel } = this.state;
+        axios.post('/admin/commissionRecord/list', {
             keyword: query,
             pageNum,
             pageSize,
             endTime: !times.length ? '' : times[1].format('YYYY-MM-DD'),
             startTime: !times.length ? '' : times[0].format('YYYY-MM-DD'),
-            commissionChannel: royaltyType
+            commissionChannel: commissionChannel
         }).then(({ data }) => { // 获取列表数据
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
@@ -96,15 +96,27 @@ class Royalty extends Component {
     changeTime = date => this.setState({ times: date }, () => this.init());
 
     // 重置
-    reset = () => this.setState({ query: '', times: [], pageNum: 1, royaltyType: '0' }, () => this.init())
+    reset = () => this.setState({ query: '', times: [], pageNum: 1, commissionChannel: '' }, () => this.init())
 
     // 导出
     exportXlxs = () => {
-        console.log('导出')
+        let { query, pageNum, times, pageSize, commissionChannel } = this.state;
+        axios.post('/admin/commissionRecord/export', {
+            keyword: query,
+            pageNum,
+            pageSize,
+            commissionChannel,
+            startTime: times.length ? times[0].format('YYYY-MM-DD') : '',
+            endTime: times.length ? times[1].format('YYYY-MM-DD') : ''
+         }).then(({data}) => {
+            if (data.code !== "200") return message.error(data.message);
+            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+            window.open(`${URL}${'admin/commissionRecord/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&commissionChannel=${commissionChannel}`,'_blank');
+         });
     }
 
     // 更改选择器
-    changeSelect = v => this.setState({ royaltyType: v }, () => this.init());
+    changeSelect = v => this.setState({ commissionChannel: v }, () => this.init());
 
     // 更改页码
     changePage = v => this.setState({ pageNum: v }, () => this.init())
@@ -119,13 +131,13 @@ class Royalty extends Component {
                         <Search style={{ width: 250 }} placeholder="请输入用户ID" value={this.state.query} onChange={this.changeQeury} onSearch={this.searchQuery} enterButton />
                         <Button type="primary" className="ml15" onClick={this.reset}>重置</Button>
                         <span className="ml15 tip mr15 mb15">释放时间:</span>
-                        <RangePicker style={{ width: 250 }} value={this.state.times} onChange={this.changeTime} />
+                        <RangePicker style={{ width: 250, "verticalAlign": "top" }} value={this.state.times} onChange={this.changeTime} />
                         <Button type="primary" className="ml15" onClick={this.exportXlxs}>导出</Button>
                     </div>
                     <div className="mb15">
                         <span className="tip mr15 ">提成渠道:</span>
-                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.royaltyType} onChange={this.changeSelect}>
-                            <Option value="0">全部</Option>
+                        <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.commissionChannel} onChange={this.changeSelect}>
+                            <Option value="">全部</Option>
                             <Option value="1">充值</Option>
                             <Option value="2">产品购买</Option>
                             <Option value="3">预约分红</Option>
@@ -141,9 +153,9 @@ class Royalty extends Component {
                         columns={this.columns}
                         pagination={{
                             total: this.state.total,
-                            pageSize: this.state.rows,
+                            pageSize: this.state.pageSize,
                             onChange: this.changePage,
-                            current: this.state.page,
+                            current: this.state.pageNum,
                             hideOnSinglePage: true,
                             /* showQuickJumper: true, */
                             showTotal: () => `共 ${this.state.total} 条数据`
