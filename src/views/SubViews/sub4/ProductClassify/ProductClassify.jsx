@@ -269,7 +269,7 @@ class ProductClassify extends Component {
      * @memberof ProductClassify
      */
     changeProductModal = async (status, type, id) => {
-        let { urlData } = this.state;
+        let { urlData, fileList } = this.state;
         if (!status) return this.setState({
             productModal: status,
             isAddProduct: type,
@@ -300,7 +300,12 @@ class ProductClassify extends Component {
                     name: data.responseBody.data[0].oldName,
                     url: data.responseBody.data[0].url
                 })
-                this.setState({ urlData })
+                fileList.push({
+                    uid: data.responseBody.data[0].id,
+                    name: data.responseBody.data[0].oldName,
+                    url: 'http://'+data.responseBody.data[0].url
+                })
+                this.setState({ urlData, fileList })
             })
 
             await axios.post('/common/attachment/list', {
@@ -315,7 +320,12 @@ class ProductClassify extends Component {
                     name: data.responseBody.data[0].oldName,
                     url: data.responseBody.data[0].url
                 })
-                this.setState({ urlData })
+                fileList.push({
+                    uid: data.responseBody.data[0].id,
+                    name: data.responseBody.data[0].oldName,
+                    url: 'http://'+data.responseBody.data[0].url
+                })
+                this.setState({ urlData,fileList })
             })
 
             await axios.post('/common/attachment/list', {
@@ -330,7 +340,12 @@ class ProductClassify extends Component {
                     name: data.responseBody.data[0].oldName,
                     url: data.responseBody.data[0].url
                 })
-                this.setState({ urlData })
+                fileList.push({
+                    uid: data.responseBody.data[0].id,
+                    name: data.responseBody.data[0].oldName,
+                    url: 'http://'+data.responseBody.data[0].url
+                })
+                this.setState({ urlData, fileList })
             })
 
             this.setState({
@@ -351,7 +366,6 @@ class ProductClassify extends Component {
      */
     handleProductModal = () => { // 确认按钮
         let { isAddProduct, typeName, miniPlazaName, data, squareExplain, addType, urlData, updateUrlData, addMiniPlaza, id, selectNum, miniPlaza, editType } = this.state;
-
         if (isAddProduct === 1) {
             if (!miniPlazaName.trim()) return message.error('微广场名称不能为空');
             if (!typeName.trim()) return message.error('产品名称不能为空');
@@ -388,32 +402,33 @@ class ProductClassify extends Component {
             }
         }
 
-        if (isAddProduct === 2 && updateUrlData.length !== 3) return message.error('产品Icon、微广场Icon或微广场广告图必传');
-
-        var updateList = { // 修改
-            attachmentInfoList: [
-                {
-                    name: updateUrlData[0].name,
-                    type: 101,
-                    url: updateUrlData[0].url,
-                },
-                {
-                    name: updateUrlData[1].name,
-                    type: 201,
-                    url: updateUrlData[1].url,
-                },
-                {
-                    name: updateUrlData[2].name,
-                    type: 202,
-                    url: updateUrlData[2].url,
-                }
-            ],
-            typeName,
-            squareName: miniPlazaName,
-            squareEnable: miniPlaza,
-            productTypeEnable: editType,
-            description: squareExplain,
-            id: isAddProduct === 2 ? id['id'] : ''
+        if (isAddProduct === 2){
+            if (updateUrlData.length !== 3) return message.error('产品Icon、微广场Icon或微广场广告图必传');
+            var updateList = { // 修改
+                attachmentInfoList: [
+                    {
+                        name: updateUrlData[0].name,
+                        type: 101,
+                        url: updateUrlData[0].url,
+                    },
+                    {
+                        name: updateUrlData[1].name,
+                        type: 201,
+                        url: updateUrlData[1].url,
+                    },
+                    {
+                        name: updateUrlData[2].name,
+                        type: 202,
+                        url: updateUrlData[2].url,
+                    }
+                ],
+                typeName,
+                squareName: miniPlazaName,
+                squareEnable: miniPlaza,
+                productTypeEnable: editType,
+                description: squareExplain,
+                id: isAddProduct === 2 ? id['id'] : ''
+            }
         }
 
         axios.post('/admin/productType/saveOrEdit', isAddProduct === 1 ? addList : updateList)

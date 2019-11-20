@@ -256,7 +256,9 @@ class ReserveOrder extends Component {
             keyword: query,
             pageNum,
             pageSize,
-            commissionChannel,
+            shopId,
+            orderStatus,
+            initiationChannel,
             startTime: times.length ? times[0].format('YYYY-MM-DD') : '',
             endTime: times.length ? times[1].format('YYYY-MM-DD') : ''
         }).then(({data}) => {

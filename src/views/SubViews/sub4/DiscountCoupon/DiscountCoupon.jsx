@@ -28,6 +28,7 @@ class DiscountCoupon extends Component {
             discount: '', // 折扣
             derate: '', // 减额
             timeLimit: '', // 时限
+            productTypeIdList: []
         }
 
         this.columns = [ // 定义列表数据
@@ -136,9 +137,15 @@ class DiscountCoupon extends Component {
                     id: '',
                     typeName: '全部'
                 })
-                this.setState({ productTypeList: data.responseBody.data })
+                var productTypeList = data.responseBody.data.filter(v=>v.id != '');
+                var productType = productTypeList.length>0 ? productTypeList[0].id : '';
+                this.setState({ 
+                    productType,
+                    productTypeIdList: data.responseBody.data,
+                    productTypeList:  productTypeList,
+                })
             })
-
+            
             this.allDataAxios()
     }
 
@@ -193,7 +200,7 @@ class DiscountCoupon extends Component {
      * @memberof DiscountCoupon
      */
     changeModal = status => {
-        if (!status) return this.setState({ modal: status, effectType: '1', productType: '0', useLimit: '', discount: '', derate: '', timeLimit: ''});
+        if (!status) return this.setState({ modal: status, effectType: '1', productType: '', useLimit: '', discount: '', derate: '', timeLimit: ''});
         this.setState({ modal: status });
     }
 
@@ -211,7 +218,6 @@ class DiscountCoupon extends Component {
     // 确认添加
     handle = () => {
         let { useLimit, discount, derate, timeLimit, productType, effectType } = this.state;
-        
         if (!useLimit.trim()) return message.error('使用额度不能为空');
         if (!discount.trim()) return message.error('折扣不能为空');
         if (!derate.trim()) return message.error('满减不能为空');
@@ -253,7 +259,7 @@ class DiscountCoupon extends Component {
                         <span className="ml15 tip mr15">产品类型:</span>
                         <Select defaultValue='全部' style={{ width: 160 }} onChange={v => this.changeSelect(v, 'productTypeId')}>
                             {
-                                this.state.productTypeList.map(v => <Option key={v.id} value={v.id}>{v.typeName}</Option>)
+                                this.state.productTypeIdList.map(v => <Option key={v.id} value={v.id}>{v.typeName}</Option>)
                             }
                         </Select>
                         <span className="ml15 tip mr15">启用状态:</span>
@@ -304,7 +310,7 @@ class DiscountCoupon extends Component {
                         <span style={{ width: 60, marginRight: 20, display: 'inline-block' }}>产品类型</span>
                         <Select value={this.state.productType} style={{ width: 160 }} onChange={v => this.changeModalSelect(v, 'productType')}>
                             {
-                                this.state.productTypeList.map(v => <Option key={v.id} value={v.id}>{v.typeName}</Option>)
+                                this.state.productTypeList.map(v=> <Option key={v.id} value={v.id}>{v.typeName}</Option>)
                             }
                         </Select>
                     </div>
