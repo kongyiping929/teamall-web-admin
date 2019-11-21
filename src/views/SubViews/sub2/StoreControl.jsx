@@ -293,7 +293,6 @@ class StoreControl extends Component {
         for (let i = 0; i < selcetGPS.length; i++) {
             if (selectCheckGPS === selcetGPS[i].id) {
                 console.log(selcetGPS[i].location);
-
                 axios.post('/admin/shop/saveOrEdit', {
                     cityId: selectPlace[1],
                     defaultFlag: radioCheck,

@@ -188,7 +188,6 @@ class ProductClassify extends Component {
     // 查看图片
     lookIcon = (r, type) => {
         let data = {};
-
         if (type === 'square') {
             data = {
                 category: 2,
@@ -219,9 +218,9 @@ class ProductClassify extends Component {
 
                 if (!data.responseBody.data.length) return;
                 this.setState({
-                    proIcon: data.responseBody.data[0].url,
-                    squareIcon: data.responseBody.data[0].url,
-                    squarePhoto: data.responseBody.data[0].url,
+                    proIcon: 'http://' + data.responseBody.data[0].url,
+                    squareIcon: 'http://' + data.responseBody.data[0].url,
+                    squarePhoto: 'http://' + data.responseBody.data[0].url,
                 })
             })
 
