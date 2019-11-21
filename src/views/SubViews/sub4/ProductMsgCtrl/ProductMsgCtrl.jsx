@@ -263,24 +263,24 @@ class ProductMsgCtrl extends Component {
                 }).then(({ data }) => {
                     if (data.code !== "200") return message.error(data.message);
                     if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                    let updata = data.responseBody.data
+                    let update = data.responseBody.data
                     
                     this.setState({
-                        title: updata.subtitle,
-                        productName: updata.productName,
-                        productPlane: updata.productionPlace,
-                        productCompany: updata.productionCompany,
-                        productExplain: updata.description,
-                        paramsNum: updata.otherParamList,
-                        defineSelect: updata.productTypeId,
-                        soureFileList: updata.attachmentList.map((v)=>{
+                        title: update.subtitle,
+                        productName: update.productName,
+                        productPlane: update.productionPlace,
+                        productCompany: update.productionCompany,
+                        productExplain: update.description,
+                        paramsNum: update.otherParamList,
+                        defineSelect: update.productTypeId,
+                        soureFileList: update.attachmentList.map((v)=>{
                             return {
                                 id: v.id,
                                 name: v.oldName,
                                 url: v.url
                             }
                         }),
-                        fileList: updata.attachmentList.map((v)=>{
+                        fileList: update.attachmentList.map((v)=>{
                             return {
                                 uid: v.id,
                                 name: v.oldName,

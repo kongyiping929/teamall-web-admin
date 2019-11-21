@@ -52,6 +52,7 @@ class ProductMsgCtrl extends Component {
             updateUrlData: [], // 修改时照片url集合
             urlData: [], // 照片url集合
             fileList: [], // 上传文件列表
+            soureFileList: []
         }
 
        
@@ -204,6 +205,20 @@ class ProductMsgCtrl extends Component {
                                 id: v.id
                             }
                         )), // 包装类型数据
+                        soureFileList: update.attachmentList.map((v)=>{
+                            return {
+                                id: v.id,
+                                name: v.oldName,
+                                url: v.url
+                            }
+                        }),
+                        fileList: update.attachmentList.map((v)=>{
+                            return {
+                                uid: v.id,
+                                name: v.oldName,
+                                url: 'http://' + v.url
+                            }
+                        })
                     })
                 })
             }
@@ -331,54 +346,8 @@ class ProductMsgCtrl extends Component {
 
     // 模态框确认
     handleProductModal = () => {
-        let { urlData, updateUrlData, isAddProduct, title, productName, productPlane, productCompany, productExplain, paramsNum, productTypeId, royaltyType, childFlag, sizeName, marketPrice, besicsPrice, costPrice, addPercent, packageType, proId, appointmentPrice, appointmentInput, sizeData, defineSelect, proSizeId } = this.state;
-
-        if (childFlag && isAddProduct == 1) { // 产品添加
-            if (!title.trim()) return message.error('副标题不能为空');
-            if (!productName.trim()) return message.error('产品名称不能为空');
-            if (!productPlane.trim()) return message.error('产地不能为空');
-            if (!productCompany.trim()) return message.error('生产公司不能为空');
-            if (!productExplain.trim()) return message.error('产品说明不能为空');
-            if (!urlData.length) return message.error('图片不能为空');
-
-            var addList = { // 新增
-                attachmentInfoList: urlData,
-                productName,
-                otherParamList: paramsNum,
-                description: productExplain,
-                productionCompany: productCompany,
-                productionPlace: productPlane,
-                subtitle: title,
-                productTypeId
-            }
-        }
-
-        if (childFlag && isAddProduct == 2) { // 产品编辑
-            var updateList = { // 编辑
-                attachmentInfoList: updateUrlData,
-                productName,
-                otherParamList: paramsNum,
-                description: productExplain,
-                productionCompany: productCompany,
-                productionPlace: productPlane,
-                subtitle: title,
-                productTypeId: defineSelect,
-                id: proId
-            }
-        }
-
-        if (childFlag) { // 产品添加/修改
-            axios.post('/admin/product/saveOrEdit', isAddProduct === 1 ? addList : updateList)
-                .then(({ data }) => {
-                    if (data.code !== "200") return message.error(data.message);
-                    if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                    message.success(isAddProduct === 1 ? '添加成功' : '修改成功');
-                    if (royaltyType == '0') this.init()
-                    else this.axiosSelect()
-                })
-        }
-
-        if (!childFlag && isAddProduct == 1) { // 规格添加
+        let { soureFileList, urlData, updateUrlData, isAddProduct, title, productName, productPlane, productCompany, productExplain, paramsNum, productTypeId, royaltyType, childFlag, sizeName, marketPrice, besicsPrice, costPrice, addPercent, packageType, proId, appointmentPrice, appointmentInput, sizeData, defineSelect, proSizeId } = this.state;
+        if (isAddProduct == 1) { // 规格添加
             if (!sizeName.trim()) return message.error('规格名称不能为空');
             if (!marketPrice.trim()) return message.error('市场单价不能为空');
             if (!besicsPrice.trim()) return message.error('基础单价不能为空');
@@ -388,7 +357,7 @@ class ProductMsgCtrl extends Component {
             if (!urlData.length) return message.error('图片不能为空');
             if (sizeData.length > 9) return message.error('每个产品最多9个规格')
             var addList = { // 新增
-                attachmentInfoList: urlData,
+                attachmentInfoList: soureFileList.concat(urlData),
                 specName: sizeName,
                 marketPrice: Number(marketPrice),
                 basePrice: Number(besicsPrice),
@@ -402,9 +371,9 @@ class ProductMsgCtrl extends Component {
             }
         }
 
-        if (!childFlag && isAddProduct == 2) { // 规格编辑
+        if (isAddProduct == 2) { // 规格编辑
             var updateList = { // 编辑
-                attachmentInfoList: updateUrlData,
+                attachmentInfoList: soureFileList.concat(updateUrlData),
                 specName: sizeName,
                 marketPrice: Number(marketPrice),
                 basePrice: Number(besicsPrice),
@@ -419,18 +388,17 @@ class ProductMsgCtrl extends Component {
             }
         }
 
-        if (!childFlag) { // 规格添加/修改
-            axios.post('/admin/productSpec/saveOrEdit', isAddProduct === 1 ? addList : updateList)
-                .then(({ data }) => {
-                    if (data.code !== "200") return message.error(data.message);
-                    if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                    message.success(isAddProduct === 1 ? '添加成功' : '修改成功');
-                    console.log(royaltyType);
-                    
-                    if (royaltyType == '0') this.sizeList()
-                    else this.axiosSelect()
-                })
-        }
+       // 规格添加/修改
+        axios.post('/admin/productSpec/saveOrEdit', isAddProduct === 1 ? addList : updateList)
+            .then(({ data }) => {
+                if (data.code !== "200") return message.error(data.message);
+                if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+                message.success(isAddProduct === 1 ? '添加成功' : '修改成功');
+                console.log(royaltyType);
+                
+                if (royaltyType == '0') this.sizeList()
+                else this.axiosSelect()
+            })
 
         this.setState({
             productModal: false,
@@ -457,28 +425,20 @@ class ProductMsgCtrl extends Component {
 
     // 添加参数
     addParams = type => {
-        let { paramsNum, childFlag, packageType } = this.state;
+        let { paramsNum,  packageType } = this.state;
         if (paramsNum.length >= 9) return;
+        if (type == 'xifen') paramsNum.push({ // 细分
+            name: '',
+            addCost: '',
+            addIncrementRate: '',
+            addPrice: ''
+        })
 
-        if (childFlag) { // 产品
-            paramsNum.push({
-                name: '',
-                content: ''
-            })
-        } else { // 规格
-            if (type == 'xifen') paramsNum.push({ // 细分
-                name: '',
-                addCost: '',
-                addIncrementRate: '',
-                addPrice: ''
-            })
-
-            if (type == 'package') packageType.push({ // 包装
-                name: '',
-                addCost: '',
-                addPrice: ''
-            })
-        }
+        if (type == 'package') packageType.push({ // 包装
+            name: '',
+            addCost: '',
+            addPrice: ''
+        })
 
         this.setState({ paramsNum, packageType })
     }
