@@ -489,7 +489,7 @@ class ProductMsgCtrl extends Component {
             if (!addPercent.trim()) return message.error('增值百分比不能为空');
             if (!packageType.length) return message.error('包装类型不能为空');
             if (!urlData.length) return message.error('图片不能为空');
-            if (sizeData.length > 9) return message.error('每个产品最多9个规格')
+            if (sizeData.length > 7) return message.error('每个产品最多7个规格')
             var addList = { // 新增
                 attachmentInfoList: urlData,
                 specName: sizeName,
@@ -561,7 +561,7 @@ class ProductMsgCtrl extends Component {
     // 添加参数
     addParams = type => {
         let { paramsNum, childFlag, packageType } = this.state;
-        if (paramsNum.length >= 9) return;
+        if (paramsNum.length >= 7) return;
 
         if (childFlag) { // 产品
             paramsNum.push({
@@ -733,7 +733,7 @@ class ProductMsgCtrl extends Component {
                             <Input style={{ width: 280 }} type="text" value={this.state.productCompany} onChange={e => this.changeProductInput(e, 'productCompany')} />
                         </div>
                         <div className="mb15">
-                            <span className="fw600" style={{ display: 'inline-block', width: 210 }}>其他参数: {paramsNum.length}/9(可以一个不填)</span>
+                            <span className="fw600" style={{ display: 'inline-block', width: 210 }}>其他参数: {paramsNum.length}/7(可以一个不填)</span>
                             <span onClick={this.addParams} style={{ color: 'skyblue', cursor: 'pointer' }}>添加参数</span>
                         </div>
                         {
