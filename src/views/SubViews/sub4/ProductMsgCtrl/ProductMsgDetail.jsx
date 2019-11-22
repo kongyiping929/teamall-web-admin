@@ -145,7 +145,6 @@ class ProductMsgCtrl extends Component {
 
     // 规格编辑/添加
     addParticulars = (status, type, id) => {
-        
         if (!status) return this.setState({
             particularsModal: status,
             isAddProduct: type,
@@ -448,8 +447,7 @@ class ProductMsgCtrl extends Component {
     }
     // 删除参数
     delParams = (i, type) => {
-        let { paramsNum, packageType, childFlag } = this.state;
-        if (childFlag) paramsNum.splice(i, 1)
+        let { paramsNum, packageType} = this.state;
         if (type == 'xifen') paramsNum.splice(i, 1)
         if (type == 'package') packageType.splice(i, 1)
         this.setState({ paramsNum, packageType })
