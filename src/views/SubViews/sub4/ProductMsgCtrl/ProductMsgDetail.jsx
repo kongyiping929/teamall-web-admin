@@ -426,19 +426,23 @@ class ProductMsgCtrl extends Component {
     // 添加参数
     addParams = type => {
         let { paramsNum,  packageType } = this.state;
-        if (paramsNum.length >= 9) return;
-        if (type == 'xifen') paramsNum.push({ // 细分
-            name: '',
-            addCost: '',
-            addIncrementRate: '',
-            addPrice: ''
-        })
-
-        if (type == 'package') packageType.push({ // 包装
-            name: '',
-            addCost: '',
-            addPrice: ''
-        })
+        if(type == 'xifen'){
+            if (paramsNum.length >= 9) return message.error("细分最多添加9条");
+            paramsNum.push({ // 细分
+                name: '',
+                addCost: '',
+                addIncrementRate: '',
+                addPrice: ''
+            })
+        }
+        if (type == 'package'){
+            if (packageType.length >= 9) return message.error("包装最多添加9条");
+            packageType.push({ // 包装
+                name: '',
+                addCost: '',
+                addPrice: ''
+            })
+        }
 
         this.setState({ paramsNum, packageType })
     }
