@@ -8,13 +8,15 @@
 import axios from "axios";
 import qs from "qs";
 import { message } from 'antd';
+import Cookie from 'js-cookie'
 // react 中使用antd  此处自定义
 // import { message } from "antd";
 // vue中使用element-ui 此处自定义
 // import { Loading} from "element-ui";
-
+/* http://47.112.118.84:7001/cy */
+/* https://api.teafunshop.com/cy/ */
 // 创建axios默认请求
-axios.defaults.baseURL = "https://api.teafunshop.com/cy/";
+axios.defaults.baseURL = "http://47.112.118.84:7001/cy";
 // axios.defaults.baseURL = "http://127.0.0.1";
 
 // 配置超时时间
@@ -41,17 +43,16 @@ axios.interceptors.request.use(config => {
     return config;
 });
 
-// 添加响应拦截器
-// axios.interceptors.response.use(
-//   function(response) {
-//     console.log(response);
-//     return response;
-//   },
-//   function(error) {
-//     // 对响应错误做点什么
-//     return Promise.reject(error);
-//   }
-// );
+ //添加响应拦截器
+ axios.interceptors.response.use(
+   function(response) {
+     return response;
+   },
+   function(error) {
+     // 对响应错误做点什么
+     return Promise.reject(error);
+   }
+ );
 /**
  * get请求
  * @method get
@@ -92,4 +93,5 @@ var post = function (url, data) {
 };
 export default { get, post };
 /* http://47.112.118.84:7001/cy */
-export const URL = process.env.NODE_ENV === 'development' ? 'https://api.teafunshop.com/cy/' : "https://api.teafunshop.com/cy/";
+/* https://api.teafunshop.com/cy/ */
+export const URL = process.env.NODE_ENV === 'development' ? 'http://47.112.118.84:7001/cy' : "https://api.teafunshop.com/cy/";

@@ -47,7 +47,8 @@ class ProductClassify extends Component {
             previewImagePr: '', // 预览图片
             fileList: [], // 上传的图片列表
             urlData: [], // 新增上传的图片集合
-            updateUrlData: [], // 修改上传的图片集合
+            soureFileList: [], // 修改上传的图片集合
+            updateIndex: -1,
         }
 
         this.columns = [ // 定义列表数据
@@ -284,7 +285,7 @@ class ProductClassify extends Component {
             squareExplain: '',
             urlData: [],
             fileList: [],
-            updateUrlData: []
+            soureFileList: []
         });
         if (type == 1) this.setState({
             productModal: status,
@@ -368,12 +369,12 @@ class ProductClassify extends Component {
      * isAddProduct 为 1 添加 2 编辑
      */
     handleProductModal = () => { // 确认按钮
-        let { isAddProduct, typeName, miniPlazaName, data, squareExplain, addType, urlData, updateUrlData, addMiniPlaza, id, selectNum, miniPlaza, editType } = this.state;
+        let { isAddProduct, typeName, miniPlazaName, data, squareExplain, addType, urlData, soureFileList, addMiniPlaza, id, selectNum, miniPlaza, editType } = this.state;
         if (isAddProduct === 1) {
             if (!miniPlazaName.trim()) return message.error('微广场名称不能为空');
             if (!typeName.trim()) return message.error('产品名称不能为空');
             if (!squareExplain.trim()) return message.error('微广场说明不能为空');
-            if (urlData.length !== 3) return message.error('产品Icon、微广场Icon或微广场广告图必传');
+            if (soureFileList.length !== 3) return message.error('产品Icon、微广场Icon或微广场广告图必传');
             for (let i = 0; i < data.length; i++) {
                 if (data[i].squareName === miniPlazaName) return message.error('微广场名称不能重复！');
                 if (data[i].typeName === typeName) return message.error('产品名称不能重复！');
@@ -382,19 +383,19 @@ class ProductClassify extends Component {
             var addList = { // 新增
                 attachmentInfoList: [
                     {
-                        name: urlData[0].name,
+                        name: soureFileList[0].name,
                         type: 101,
-                        url: urlData[0].url,
+                        url: soureFileList[0].url,
                     },
                     {
-                        name: urlData[1].name,
+                        name: soureFileList[1].name,
                         type: 201,
-                        url: urlData[1].url,
+                        url: soureFileList[1].url,
                     },
                     {
-                        name: urlData[2].name,
+                        name: soureFileList[2].name,
                         type: 202,
-                        url: urlData[2].url,
+                        url: soureFileList[2].url,
                     }
                 ],
                 typeName,
@@ -406,23 +407,23 @@ class ProductClassify extends Component {
         }
 
         if (isAddProduct === 2){
-            if (updateUrlData.length !== 3) return message.error('产品Icon、微广场Icon或微广场广告图必传');
+            if (soureFileList.length !== 3) return message.error('产品Icon、微广场Icon或微广场广告图必传');
             var updateList = { // 修改
                 attachmentInfoList: [
                     {
-                        name: updateUrlData[0].name,
+                        name: soureFileList[0].name,
                         type: 101,
-                        url: updateUrlData[0].url,
+                        url: soureFileList[0].url,
                     },
                     {
-                        name: updateUrlData[1].name,
+                        name: soureFileList[1].name,
                         type: 201,
-                        url: updateUrlData[1].url,
+                        url: soureFileList[1].url,
                     },
                     {
-                        name: updateUrlData[2].name,
+                        name: soureFileList[2].name,
                         type: 202,
-                        url: updateUrlData[2].url,
+                        url: soureFileList[2].url,
                     }
                 ],
                 typeName,
@@ -464,12 +465,30 @@ class ProductClassify extends Component {
     };
 
     handleChange = ({ file, fileList }) => { // 图片上传
-        let { urlData, isAddProduct, updateUrlData } = this.state;
+        var that = this;
+        let { soureFileList } = this.state;
+        if(file.status == "removed"){
+            let { fileList, updateIndex } = this.state;
+            fileList.forEach(function(item, index, arr) {
+                if(item.uid == file.uid) {
+                    updateIndex = index; 
+                    fileList.splice(index, 1);
+                }
+            });
+            soureFileList.forEach(function(item, index, arr) {
+                if(item.id == file.uid) {
+                    soureFileList.splice(index, 1);
+                }
+            });
+            
+            that.setState({ fileList, soureFileList, updateIndex })
+            return
+        }
         if (file.type !== "image/png") return Modal.error({ title: '只能上传PNG格式的图片~' })
         if (file.size / 1048576 > 1) return Modal.error({ title: '超过1M限制，不允许上传~' })
-
+        
         if (file.status === 'done') {
-            this.setState({ fileList }, () => {
+            that.setState({ fileList }, () => {
                 if (fileList.length) {
                     axios.post('/common/file/upload', {
                         fileBase64Content: file.thumbUrl.split(',')[1],
@@ -477,25 +496,19 @@ class ProductClassify extends Component {
                     }).then(({ data }) => {
                         if (data.code !== "200") return message.error(data.message);
                         if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                        isAddProduct === 1 ? urlData.push({
+                        soureFileList.push({
                             url: data.responseBody.data,
-                            uid: file.uid,
-                            name: file.name
-                        }) : updateUrlData.push({
-                            url: data.responseBody.data,
-                            uid: file.uid,
-                            name: file.name
-                        })
+                            name: file.name,
+                            id: file.uid
+                        }) 
                         message.success('图片上传成功')
-                        this.setState({ urlData, updateUrlData })
+                        that.setState({ soureFileList })
                     })
                 }
             });
         }
-
-        this.setState({ fileList })
+        that.setState({ fileList: fileList })
     }
-
     removeFile = file => false; // 禁止删除
 
     getBase64 = file => {
@@ -615,12 +628,15 @@ class ProductClassify extends Component {
                             fileList={fileList}
                             onPreview={this.handlePreview}
                             onChange={this.handleChange}
-                            onRemove={this.removeFile}
                         >
                             {fileList.length >= 3 ? null : (
                                 <div>
                                     <Icon type="plus" />
-                                    <div className="ant-upload-text">{!fileList.length ? '产品icon Upload' : fileList.length == 1 ? '微广场icon Upload' : fileList.length == 2 ? '微广场广告图 Upload' : ''}</div>
+                                    <div className="ant-upload-text">
+                                    {
+                                        !fileList.length ? '产品icon Upload' : fileList.length == 1 ? '微广场icon Upload' : fileList.length == 2 ? '微广场广告图 Upload' : ''
+                                    }
+                                    </div>
                                 </div>
                             )}
                         </Upload>

@@ -450,9 +450,10 @@ class ProductMsgCtrl extends Component {
             if (!productPlane.trim()) return message.error('产地不能为空');
             if (!productCompany.trim()) return message.error('生产公司不能为空');
             if (!productExplain.trim()) return message.error('产品说明不能为空');
-            if (!urlData.length) return message.error('图片不能为空');
+            if (soureFileList.length == 0) return message.error('图片不能为空');
+
             var addList = { // 新增
-                attachmentInfoList: soureFileList.concat(urlData),
+                attachmentInfoList: soureFileList,
                 productName,
                 otherParamList: paramsNum,
                 description: productExplain,
@@ -465,7 +466,7 @@ class ProductMsgCtrl extends Component {
 
         if (childFlag && isAddProduct == 2) { // 产品编辑
             var updateList = { // 编辑
-                attachmentInfoList: soureFileList.concat(updateUrlData),
+                attachmentInfoList: soureFileList,
                 productName,
                 otherParamList: paramsNum,
                 description: productExplain,
@@ -621,12 +622,29 @@ class ProductMsgCtrl extends Component {
     };
 
     handleChange = ({ file, fileList }) => { // 图片上传
-        let { urlData, isAddProduct, updateUrlData } = this.state;
+        var that = this;
+        
+        let { soureFileList } = this.state;
+        if(file.status == "removed"){
+            let { fileList } = this.state;
+            fileList.forEach(function(item, index, arr) {
+                if(item.uid == file.uid) {
+                    fileList.splice(index, 1);
+                }
+            });
+            soureFileList.forEach(function(item, index, arr) {
+                if(item.id == file.uid) {
+                    soureFileList.splice(index, 1);
+                }
+            });
+            that.setState({ fileList, soureFileList })
+            return
+        }
         if (file.type !== "image/png") return Modal.error({ title: '只能上传PNG格式的图片~' })
         if (file.size / 1048576 > 1) return Modal.error({ title: '超过1M限制，不允许上传~' })
-
+        
         if (file.status === 'done') {
-            this.setState({ fileList }, () => {
+            that.setState({ fileList }, () => {
                 if (fileList.length) {
                     axios.post('/common/file/upload', {
                         fileBase64Content: file.thumbUrl.split(',')[1],
@@ -634,23 +652,18 @@ class ProductMsgCtrl extends Component {
                     }).then(({ data }) => {
                         if (data.code !== "200") return message.error(data.message);
                         if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                        isAddProduct === 1 ? urlData.push({
+                        soureFileList.push({
                             url: data.responseBody.data,
                             name: file.name,
                             id: file.uid
-                        }) : updateUrlData.push({
-                            url: data.responseBody.data,
-                            name: file.name,
-                            id: file.uid
-                        })
+                        }) 
                         message.success('图片上传成功')
-                        this.setState({ urlData, updateUrlData })
+                        that.setState({ soureFileList })
                     })
                 }
             });
         }
-
-        this.setState({ fileList })
+        that.setState({ fileList: fileList })
     }
 
     getBase64 = file => {

@@ -351,17 +351,17 @@ class ProductMsgCtrl extends Component {
     // 模态框确认
     handleProductModal = () => {
         let { soureFileList, urlData, updateUrlData, isAddProduct,paramsNum, appointmentStatus, childFlag, sizeName, marketPrice, besicsPrice, costPrice, addPercent, packageType, productId, appointmentPrice, appointmentInput, sizeData, defineSelect, proSizeId } = this.state;
+        if (!sizeName.trim()) return message.error('规格名称不能为空');
+        if (marketPrice == "") return message.error('市场单价不能为空');
+        if (besicsPrice == "") return message.error('基础单价不能为空');
+        if (costPrice == "") return message.error('成本单价不能为空');
+        if (addPercent == "") return message.error('增值百分比不能为空');
+        if (packageType.length == 0) return message.error('包装类型不能为空');
+        if (soureFileList.length == 0) return message.error('图片不能为空');
+        if (sizeData.length > 9) return message.error('每个产品最多9个规格')
         if (isAddProduct == 1) { // 规格添加
-            if (!sizeName.trim()) return message.error('规格名称不能为空');
-            if (!marketPrice.trim()) return message.error('市场单价不能为空');
-            if (!besicsPrice.trim()) return message.error('基础单价不能为空');
-            if (!costPrice.trim()) return message.error('成本单价不能为空');
-            if (!addPercent.trim()) return message.error('增值百分比不能为空');
-            if (!packageType.length) return message.error('包装类型不能为空');
-            if (!urlData.length) return message.error('图片不能为空');
-            if (sizeData.length > 9) return message.error('每个产品最多9个规格')
             var addList = { // 新增
-                attachmentInfoList: soureFileList.concat(urlData),
+                attachmentInfoList: soureFileList,
                 specName: sizeName,
                 marketPrice: Number(marketPrice),
                 basePrice: Number(besicsPrice),
@@ -377,7 +377,7 @@ class ProductMsgCtrl extends Component {
 
         if (isAddProduct == 2) { // 规格编辑
             var updateList = { // 编辑
-                attachmentInfoList: soureFileList.concat(updateUrlData),
+                attachmentInfoList: soureFileList,
                 specName: sizeName,
                 marketPrice: Number(marketPrice),
                 basePrice: Number(besicsPrice),
@@ -478,12 +478,29 @@ class ProductMsgCtrl extends Component {
     };
 
     handleChange = ({ file, fileList }) => { // 图片上传
-        let { urlData, isAddProduct, updateUrlData } = this.state;
+        var that = this;
+        
+        let { soureFileList } = this.state;
+        if(file.status == "removed"){
+            let { fileList } = this.state;
+            fileList.forEach(function(item, index, arr) {
+                if(item.uid == file.uid) {
+                    fileList.splice(index, 1);
+                }
+            });
+            soureFileList.forEach(function(item, index, arr) {
+                if(item.id == file.uid) {
+                    soureFileList.splice(index, 1);
+                }
+            });
+            that.setState({ fileList, soureFileList })
+            return
+        }
         if (file.type !== "image/png") return Modal.error({ title: '只能上传PNG格式的图片~' })
         if (file.size / 1048576 > 1) return Modal.error({ title: '超过1M限制，不允许上传~' })
-
+        
         if (file.status === 'done') {
-            this.setState({ fileList }, () => {
+            that.setState({ fileList }, () => {
                 if (fileList.length) {
                     axios.post('/common/file/upload', {
                         fileBase64Content: file.thumbUrl.split(',')[1],
@@ -491,21 +508,18 @@ class ProductMsgCtrl extends Component {
                     }).then(({ data }) => {
                         if (data.code !== "200") return message.error(data.message);
                         if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                        isAddProduct === 1 ? urlData.push({
+                        soureFileList.push({
                             url: data.responseBody.data,
-                            name: file.name
-                        }) : updateUrlData.push({
-                            url: data.responseBody.data,
-                            name: file.name
-                        })
+                            name: file.name,
+                            id: file.uid
+                        }) 
                         message.success('图片上传成功')
-                        this.setState({ urlData, updateUrlData })
+                        that.setState({ soureFileList })
                     })
                 }
             });
         }
-
-        this.setState({ fileList })
+        that.setState({ fileList: fileList })
     }
 
     getBase64 = file => {
