@@ -14,16 +14,13 @@ class Header extends Component {
     }
 
     logout = () => {
-        axios.post('/logout')
+        axios.post('/admin/common/logout')
             .then(({ data }) => {
-                if (data.status !== '200') return message.error(data.message);
-                
+                if (data.code !== "200") return message.error(data.message);
+                if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
                 Cookie.remove('state')
-                
-                message.success('退出成功')
-                
+                message.success('退出成功');
                 this.props.history.push('/login')
-
             })
     }
 

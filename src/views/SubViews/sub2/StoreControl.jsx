@@ -43,14 +43,16 @@ class StoreControl extends Component {
             subdivideData: [{}], // 产品详情细分规格数据
             packagingData: [{}], // 产品详情包装规格数据
             linkChildFlag: true, // 子页面切换
-            scrollTop: localStorage.getItem("scrollTop") != null ? localStorage.getItem("scrollTop") : 0
+            scrollTop: localStorage.getItem("scrollTop") != null ? localStorage.getItem("scrollTop") : 0,
+            lat: '',
+            lng: ''
         }
         this.options = []
 
         this.columns = [ // 定义列表数据
             {
                 title: '店铺ID',
-                dataIndex: 'id',
+                dataIndex: 'shopNo',
                 align: 'center'
             },
             {
@@ -80,7 +82,7 @@ class StoreControl extends Component {
                 render: (t, r, i) => (
                     <div>
                         <Button type="link" size="small" onClick={() => this.changeProductModal(false, r)}>店铺详情</Button>
-                        <Button type="link" size="small" onClick={() => this.changeUpdate(true, r)}>店铺编辑</Button>
+                        <Button type="link" size="small" onClick={() => this.changeUpdate(true, r, 'update')}>店铺编辑</Button>
                         <Button type="link" size="small" onClick={() => this.changeDelete(true, r)}>店铺解除</Button>
                     </div>
                 )
@@ -160,7 +162,6 @@ class StoreControl extends Component {
         axios.post('/admin/shop/get/info', {
             id: r.id
         }).then(({ data }) => {
-            console.log(data);
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
             let update = data.responseBody.data
@@ -169,7 +170,10 @@ class StoreControl extends Component {
                 number: update.servicePhone,
                 place: update.detailAddress,
                 radioCheck: update.defaultFlag,
-                selectPlace: [`${update.provinceId}`, `${update.cityId}`, `${update.districtId}`]
+                selectPlace: [`${update.provinceId}`, `${update.cityId}`, `${update.districtId}`],
+                lat: update.latitude,
+                lng: update.longitude,
+                id: update.id,
             },() => console.log(this.state.selectPlace)
             )
         })
@@ -205,7 +209,7 @@ class StoreControl extends Component {
     mapSearchReq = () => {
         let { selectPlace, place, pageNum, selcetGPS } = this.state;
         if (!place.trim()) return message.error('请输入详细地址');
-
+        selcetGPS = [];
         axios.post('/admin/shop/queryAddress', {
             cityId: selectPlace[1],
             detailAddress: place,
@@ -216,7 +220,6 @@ class StoreControl extends Component {
         }).then(({ data }) => {
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-            debugger
             selcetGPS.push(...data.responseBody.data.data)
             this.setState({ selcetGPS })
         })
@@ -285,44 +288,50 @@ class StoreControl extends Component {
 
     // 确认
     handleOk = e => {
-        let { platformName, number, options, selcetGPS, selectCheckGPS, selectPlace, radioCheck, place } = this.state;
+        let { platformName, number, options, selcetGPS, selectCheckGPS, selectPlace, radioCheck, place, flagModal, id, lat, lng } = this.state
         if (!platformName.trim()) return message.error('请输入店铺名称');
         if (!number.trim()) return message.error('请输入服务电话');
         if (!options.length) return message.error('请输入店铺位置');
-        if (!selcetGPS.length) return message.error('请输入店铺GPS');
+        if(flagModal == "update" ){
+            if ( lat == '' && lng == '') return message.error('请输入店铺GPS');
+        }else{
+            if (!selcetGPS.length) return message.error('请输入店铺GPS');
+        }
         for (let i = 0; i < selcetGPS.length; i++) {
             if (selectCheckGPS === selcetGPS[i].id) {
-                console.log(selcetGPS[i].location);
-                axios.post('/admin/shop/saveOrEdit', {
-                    cityId: selectPlace[1],
-                    defaultFlag: radioCheck,
-                    detailAddress: place,
-                    districtId: selectPlace[2],
-                    lat: selcetGPS[i].location.lat,
-                    lng: selcetGPS[i].location.lng,
-                    provinceId: selectPlace[0],
-                    servicePhone: number,
-                    shopName: platformName
-                }).then(({ data }) => {
-                    if (data.code !== "200") return message.error(data.message);
-                    if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-
-                    message.success('添加成功');
-
-                    this.setState({
-                        isModel: false,
-                        platformName: '',
-                        number: '',
-                        place: '',
-                        selcetGPS: [],
-                        radioCheck: 1,
-                        selectCheckGPS: '',
-                        // selectPlace: [],
-                        pageNum: 1
-                    }, () => this.init());
-                })
+                lat = selcetGPS[i].location.lat;
+                lng = selcetGPS[i].location.lng;
             }
         }
+        axios.post('/admin/shop/saveOrEdit', {
+            cityId: selectPlace[1],
+            defaultFlag: radioCheck,
+            detailAddress: place,
+            districtId: selectPlace[2],
+            lat: lat,
+            lng: lng,
+            provinceId: selectPlace[0],
+            servicePhone: number,
+            shopName: platformName,
+            id: flagModal == "update" ? id : ''
+        }).then(({ data }) => {
+            if (data.code !== "200") return message.error(data.message);
+            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+
+            message.success('添加成功');
+
+            this.setState({
+                isModel: false,
+                platformName: '',
+                number: '',
+                place: '',
+                selcetGPS: [],
+                radioCheck: 1,
+                selectCheckGPS: '',
+                // selectPlace: [],
+                pageNum: 1
+            }, () => this.init());
+        })
     }
 
     // 取消

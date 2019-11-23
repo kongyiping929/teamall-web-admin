@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { Input, Button, DatePicker, Select, Table, message } from 'antd';
+import { Input, Button, DatePicker, Select, Table, message, Modal } from 'antd';
 import axios, { URL } from '@axios';
 
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+const { confirm } = Modal;
 
 // 用户信息
 class UserMes extends Component {
@@ -42,7 +43,7 @@ class UserMes extends Component {
                 title: '账号启用状态',
                 dataIndex: 'userStatus',
                 align: 'center',
-                render: (t, r, i) => t == 1 ? '启用' : t == 2 ? '禁用' : ''
+                render: (t, r, i) => t == 1 ? '启用' : t == 2 ? '封禁' : ''
             },
             {
                 title: '注册时间',
@@ -61,9 +62,14 @@ class UserMes extends Component {
             },
             {
                 title: '操作',
-                dataIndex: 'k',
                 align: 'center',
-                render: text => <Button type="link">封禁</Button>
+                render: (t, r, i) => (
+                    <>
+                    {
+                        r.userStatus === 1 ? <Button type="link" onClick={() => this.changeStatus(r)}>启用</Button> : <Button type="link" onClick={() => this.changeStatus(r)}>禁用</Button>
+                    }
+                    </>
+                )
             }
         ]
     }
@@ -123,6 +129,28 @@ class UserMes extends Component {
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
             window.open(`${URL}${'admin/user/export'}?keyword=${query}&pageNum=${pageNum}&pageSize=${pageSize}&startTime=${times.length ? times[0].format('YYYY-MM-DD') : ''}&endTime=${times.length ? times[1].format('YYYY-MM-DD') : ''}&userStatus=${userStatus}`,'_blank');
          });
+    }
+
+    /**
+     * 更改启用状态
+     * @param {*} enable 1 为启用 2 禁用
+     */
+    changeStatus = r => {
+        var that = this;
+        confirm({
+            title: `是否确认${r.userStatus == 1 ? "启用" : "封禁"}?`,
+            maskClosable: true,
+            onOk() {
+                axios.post('/admin/user/updEnable', { 
+                    id: r.userId,
+                    enable: r.userStatus == 1 ? 2: 1,
+                }).then(({ data }) => {
+                    if (data.code !== "200") return message.error(data.message);
+                    if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+                    that.setState({ pageNum: 1, storeType: '', enable: '', productTypeId: '' }, () => that.init() );
+                })
+            }
+        });
     }
 
     // 更改选择器

@@ -112,12 +112,11 @@ class DiscountCoupon extends Component {
             {
                 title: '操作',
                 align: 'center',
-                dataIndex: 'enable',
                 key: 20,
                 render: (t, r, i) => (
                     <>
                     {
-                        t === 1 ? <Button type="link" onClick={() => this.changeStatus(r)}>启用</Button> : <Button type="link" onClick={() => this.changeStatus(r)}>禁用</Button>
+                        r.enable === 1 ? <Button type="link" onClick={() => this.changeStatus(r)}>启用</Button> : <Button type="link" onClick={() => this.changeStatus(r)}>禁用</Button>
                     }
                     </>
                 )
