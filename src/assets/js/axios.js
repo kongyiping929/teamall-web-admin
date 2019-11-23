@@ -15,8 +15,8 @@ import Cookie from 'js-cookie'
 // import { Loading} from "element-ui";
 
 // 创建axios默认请求
-//let baseURL = 'http://119.23.79.12:7001/cy/';
-let baseURL = 'https://api.teafunshop.com/cy/';
+let baseURL = 'http://119.23.79.12:7001/cy/';
+//let baseURL = 'https://api.teafunshop.com/cy/';
 axios.defaults.baseURL = baseURL;
 
 // 配置超时时间
