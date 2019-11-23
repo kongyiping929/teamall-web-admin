@@ -73,8 +73,15 @@ class ProductMsgCtrl extends Component {
             },
             {
                 title: '产品操作状态',
-                dataIndex: 'enableDesc',
-                align: 'center'
+                dataIndex: 'enable',
+                align: 'center',
+                render: (t, r, i) => (
+                    <>
+                    {
+                        t === 1 ? <span className="ant-btn-link">启用</span> : <span>禁用</span>
+                    }
+                    </>
+                )
             },
             {
                 title: '创建时间',

@@ -19,7 +19,7 @@ class ProductMsgCtrl extends Component {
             pageSize: 10, // 每页条数
             total: 1, // 产品总数
             sizeTotal: 1, // 规格总数
-            royaltyType: '0', // 0 全部 1 启用 可预约 2 关闭 不可预约
+            appointmentStatus: '', // 0 全部 1 启用 可预约 2 关闭 不可预约
             data: [], // 产品列表数据
             sizeData: [], // 规格列表数据
             selectData: [], // 下拉框数据
@@ -46,13 +46,14 @@ class ProductMsgCtrl extends Component {
             childFlag: true, // 子页面切换
             id: props.match.params.id,
             proName: '', // 规格界面产品名称
-            proId: '', // 产品ID/规格添加需要
+            productId: '', // 产品ID/规格添加需要
             proSizeId: '', // 产品规格ID
             particularsModal: false, // 规格添加编辑模态框 true 显示 false 隐藏
             updateUrlData: [], // 修改时照片url集合
             urlData: [], // 照片url集合
             fileList: [], // 上传文件列表
-            soureFileList: []
+            soureFileList: [],
+            specName: '' //规格名称
         }
 
        
@@ -121,18 +122,19 @@ class ProductMsgCtrl extends Component {
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
             let getData = data.responseBody.data
-            this.setState({ proName: getData.productName, proId: getData.id, query: '' }, ()=> this.sizeList())
+            this.setState({ proName: getData.productName, productId: getData.id, specName: '' }, ()=> this.sizeList())
         });
     }
 
     // 规格页面获取列表
     sizeList = () => {
-        let { pageNum, pageSize, proId, id } = this.state;
+        let { pageNum, pageSize, productId, id } = this.state;
         axios.post('/admin/productSpec/list', { // 获取列表
             appointmentStatus: '',
             pageNum,
             pageSize,
-            productId: proId,
+            productId: productId,
+            specName: '',
         }).then(({ data }) => {
             if (data.code !== "200") return message.error(data.message);
             if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
@@ -228,14 +230,14 @@ class ProductMsgCtrl extends Component {
     }
 
     // 更改搜索框
-    changeQeury = e => this.setState({ query: e.target.value.trim() });
+    changeQeury = e => this.setState({ specName: e.target.value.trim() });
 
     // 点击搜索
     searchQuery = (v, type) => {
-        let { pageNum, pageSize, proId } = this.state;
+        let { pageNum, pageSize, productId, appointmentStatus } = this.state;
         if (type == 'father') {
             axios.post('/admin/product/list', {
-                enable: '',
+                appointmentStatus: appointmentStatus,
                 pageNum,
                 pageSize,
                 id: v
@@ -251,7 +253,7 @@ class ProductMsgCtrl extends Component {
                 appointmentStatus: '',
                 pageNum,
                 pageSize,
-                productId: proId,
+                productId: productId,
                 specName: v
             }).then(({ data }) => {
                 if (data.code !== "200") return message.error(data.message);
@@ -263,27 +265,27 @@ class ProductMsgCtrl extends Component {
     }
 
     // 重置
-    reset = (type) => this.setState({ query: '', pageNum: 1, royaltyType: '0' }, () => {
+    reset = (type) => this.setState({ specName: '', pageNum: 1, appointmentStatus: '' }, () => {
         if (type == 'son') this.sizeList();
     })
 
     // 更改选择器
-    changeSelect = v => this.setState({ royaltyType: v, pageNum: 1 }, () => this.axiosSelect());
+    changeSelect = v => this.setState({ appointmentStatus: v, pageNum: 1 }, () => this.axiosSelect());
 
     axiosSelect = e => { // 更改选择器交互
-        let { pageNum, pageSize, royaltyType } = this.state;
+        let { pageNum, pageSize, appointmentStatus } = this.state;
 
         let dataList = {
-            enable: royaltyType === '0' ? '' : Number(royaltyType),
+            appointmentStatus: appointmentStatus,
             pageNum,
             pageSize
         }
 
         let sizeList = {
-            appointmentStatus: royaltyType === '0' ? '' : Number(royaltyType),
+            appointmentStatus: appointmentStatus,
             pageNum,
             pageSize,
-            productId: this.state.proId
+            productId: this.state.productId
         }
 
         if(this.state.childFlag) { // 产品
@@ -348,7 +350,7 @@ class ProductMsgCtrl extends Component {
 
     // 模态框确认
     handleProductModal = () => {
-        let { soureFileList, urlData, updateUrlData, isAddProduct, title, productName, productPlane, productCompany, productExplain, paramsNum, productTypeId, royaltyType, childFlag, sizeName, marketPrice, besicsPrice, costPrice, addPercent, packageType, proId, appointmentPrice, appointmentInput, sizeData, defineSelect, proSizeId } = this.state;
+        let { soureFileList, urlData, updateUrlData, isAddProduct,paramsNum, appointmentStatus, childFlag, sizeName, marketPrice, besicsPrice, costPrice, addPercent, packageType, productId, appointmentPrice, appointmentInput, sizeData, defineSelect, proSizeId } = this.state;
         if (isAddProduct == 1) { // 规格添加
             if (!sizeName.trim()) return message.error('规格名称不能为空');
             if (!marketPrice.trim()) return message.error('市场单价不能为空');
@@ -367,7 +369,7 @@ class ProductMsgCtrl extends Component {
                 incrementRate: Number(addPercent),
                 lineList: paramsNum,
                 packageList: packageType,
-                productId: proId,
+                productId: productId,
                 appointmentPrice: Number(appointmentPrice),
                 appointmentStatus: appointmentInput ? 1 : 2
             }
@@ -383,7 +385,7 @@ class ProductMsgCtrl extends Component {
                 incrementRate: Number(addPercent),
                 lineList: paramsNum,
                 packageList: packageType,
-                productId: proId,
+                productId: productId,
                 appointmentPrice: Number(appointmentPrice),
                 appointmentStatus: appointmentInput ? 1 : 2,
                 id: proSizeId
@@ -396,9 +398,9 @@ class ProductMsgCtrl extends Component {
                 if (data.code !== "200") return message.error(data.message);
                 if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
                 message.success(isAddProduct === 1 ? '添加成功' : '修改成功');
-                console.log(royaltyType);
+                console.log(appointmentStatus);
                 
-                if (royaltyType == '0') this.sizeList()
+                if (appointmentStatus == '') this.sizeList()
                 else this.axiosSelect()
             })
 
@@ -529,14 +531,14 @@ class ProductMsgCtrl extends Component {
                     {/* 顶部搜索框 */}
                     <div className="searchLayer">
                         <div className="mb15">
-                            <Search style={{ width: 250 }} placeholder="请输入规格名称" value={this.state.query} onChange={this.changeQeury} onSearch={e => this.searchQuery(e, 'son')} enterButton />
+                            <Search style={{ width: 250 }} placeholder="请输入规格名称" value={this.state.specName} onChange={this.changeQeury} onSearch={e => this.searchQuery(e, 'son')} enterButton />
                             <Button type="primary" className="ml15" onClick={() => this.reset('son')}>重置</Button>
                             <Button type="primary" className="ml15" onClick={() => this.addParticulars(true, 1)}>规格添加</Button>
                         </div>
                         <div className="mb15">
                             <span className="tip mr15 ">预约状态:</span>
-                            <Select defaultValue="lucy" style={{ width: 120 }} value={this.state.royaltyType} onChange={this.changeSelect}>
-                                <Option value="0">全部</Option>
+                            <Select  style={{ width: 120 }} value={this.state.appointmentStatus} onChange={this.changeSelect}>
+                                <Option value="">全部</Option>
                                 <Option value="1">可预约</Option>
                                 <Option value="2">不可预约</Option>
                             </Select>

@@ -172,12 +172,13 @@ class MessageAdmin extends Component {
     // 更改时间
     changeTime = date => {
         let { pageNum, pageSize } = this.state;
-        this.axiosInit({
+        this.setState({ times: date }, () => this.axiosInit({
             startTime: date[0].format('YYYY-MM-DD'),
             endTime: date[1].format('YYYY-MM-DD'),
             pageNum,
             pageSize
-        })
+        }));
+        
     }
 
     // 重置

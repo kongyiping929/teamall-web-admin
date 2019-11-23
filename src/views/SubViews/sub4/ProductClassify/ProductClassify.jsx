@@ -110,23 +110,27 @@ class ProductClassify extends Component {
             },
             {
                 title: '产品类型状态',
-                dataIndex: 'productTypeEnable',
+                dataIndex: 'productTypeEnableDesc',
                 align: 'center',
                 render: (t, r, i) => (
                     <>
-                    <span style={{"whiteSpace": "nowrap"}}> {t} </span>
+                    {
+                         t === "启用" ? <span className="ant-btn-link">启用</span> : <span>禁用</span>
+                    }
                     </>
                 )
             },
             {
                 title: '广场状态',
-                dataIndex: 'squareEnable',
+                dataIndex: 'squareEnableDesc',
                 align: 'center',    
                 render: (t, r, i) => (
                     <>
-                    <span style={{"whiteSpace": "nowrap"}}> {t} </span>
+                    {
+                        t === "启用" ? <span className="ant-btn-link">启用</span> : <span>禁用</span>
+                    }
                     </>
-                )
+                )   
             },
             {
                 title: '创建时间',

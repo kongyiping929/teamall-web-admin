@@ -88,7 +88,9 @@ class ThresholdValue extends Component {
                 dataIndex: '2',
                 key: '2',
                 render: (t, r, i) => (
-                    <span className='color' onClick={r.dictName == "每日释放开关" ? () => this.tableClick(r) : e => this.showModal(JSON.parse(JSON.stringify(r)))}>{r.dictName == "每日释放开关" && r.dictValue == 0 ? '开启' : r.dictName == "每日释放开关" && r.dictValue == 1 ? '关闭' : '编辑'}</span>
+                    <span className='color' onClick={r.dictName == "每日释放开关" ? () => this.tableClick(r) : e => this.showModal(JSON.parse(JSON.stringify(r)))}>
+                        {r.dictName == "每日释放开关" && r.dictValue == 0 ? <span className="ant-btn-link">开启 </span>: r.dictName == "每日释放开关" && r.dictValue == 1 ? '关闭' : <span className="ant-btn-link">编辑 </span>}
+                    </span>
                 )
             }
         ];

@@ -13,8 +13,8 @@ class Release extends Component {
         this.state = {
             query: '', // 搜索
             times: [], // 时间
-            page: 1, // 当前页码
-            rows: 10, // 每页条数
+            pageNum: 1, // 当前页码
+            pageSize: 10, // 每页条数
             total: 1, // 总数
             data: [], // 列表数据
         }
@@ -53,6 +53,29 @@ class Release extends Component {
         ]
     }
 
+    componentDidMount() {
+        this.init();
+    }
+
+    init = () => {
+        let { pageNum, pageSize, query, times } = this.state;
+        axios.post('/admin/everydayRelease/list', {
+            keyword: query,
+            pageNum,
+            pageSize,
+            endTime: !times.length ? '' : times[1].format('YYYY-MM-DD'),
+            startTime: !times.length ? '' : times[0].format('YYYY-MM-DD'),
+        }).then(({ data }) => { // 获取列表数据
+            if (data.code !== "200") return message.error(data.message);
+            if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+
+            this.setState({
+                data: data.responseBody.data.list,
+                total: data.responseBody.data.total
+            })
+        })
+    }
+
     // 更改搜索框
     changeQeury = e => this.setState({ query: e.target.value.trim() });
 
@@ -82,7 +105,7 @@ class Release extends Component {
     }
 
     // 更改页码
-    changePage = v => this.setState({ page: v })
+    changePage = v => this.setState({ pageNum: v })
 
     render() {
         return (
@@ -107,9 +130,9 @@ class Release extends Component {
                         columns={this.columns} 
                         pagination={{
                             total: this.state.total,
-                            pageSize: this.state.rows,
+                            pageSize: this.state.pageSize,
                             onChange: this.changePage,
-                            current: this.state.page,
+                            current: this.state.pageNum,
                             hideOnSinglePage: true,
                             /* showQuickJumper: true, */
                             showTotal: () => `共 ${this.state.total} 条数据`
