@@ -22,7 +22,7 @@ class StoreControl extends Component {
             childPage: 1, // 当前页码
             pageSize: 10, // 每页条数
             childTotal: 1, // 总数
-            province: localStorage.getItem("province") != null ? localStorage.getItem("province") : '0', // 省份下拉标识
+            province: localStorage.getItem("province") != null ? localStorage.getItem("province") : '', // 省份下拉标识
             provinceData: [], // 省数据
             number: '', // 服务电话
             place: '', // 详细地址
@@ -109,7 +109,7 @@ class StoreControl extends Component {
 
                 data.responseBody.data.unshift({
                     addrName: '全部',
-                    id: '0'
+                    id: ''
                 })
                 this.setState({ provinceData: data.responseBody.data });
             })

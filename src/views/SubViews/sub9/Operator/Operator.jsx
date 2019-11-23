@@ -16,7 +16,7 @@ class Operator extends Component {
             total: 1, // 总数
             data: [], // 列表数据
             addInput: '', // 添加搜索输入框
-            shopId: '', // 添加筛选器
+            shopId: '0', // 添加筛选器
             shopIdData: [], // 店铺下拉框数据
             addVisible: false, // 添加模态框
             userVisible: false, // 从属用户信息模态框
@@ -117,7 +117,7 @@ class Operator extends Component {
                 if (data.code !== '200') return message.error(data.message);
 
                 data.responseBody.data.unshift({
-                    id: '',
+                    id: '0',
                     shopName: '全部'
                 })
 

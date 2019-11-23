@@ -23,7 +23,7 @@ class DiscountCoupon extends Component {
             productTypeList: [], // 产品类型数据
             modal: false, // 优惠券添加模态框 true 显示 false 隐藏
             effectType: '1', // 作用类型 0 产品购买 1 预约支付
-            productType: '', // 产品类型 0 全部 1 产品类型名称XX 2 产品类型名称XXX
+            productType: '0', // 产品类型 0 全部 1 产品类型名称XX 2 产品类型名称XXX
             useLimit: '', // 使用额度
             discount: '', // 折扣
             derate: '', // 减额
@@ -50,7 +50,7 @@ class DiscountCoupon extends Component {
                 )
             },
             {
-                title: '产品涵盖',
+                title: '产品类型',
                 dataIndex: 'productTypeId',
                 align: 'center',
                 key: 3,
@@ -112,6 +112,7 @@ class DiscountCoupon extends Component {
             {
                 title: '操作',
                 align: 'center',
+                dataIndex: 'enable',
                 key: 20,
                 render: (t, r, i) => (
                     <>
@@ -133,16 +134,15 @@ class DiscountCoupon extends Component {
             .then(({ data }) => {
                 if (data.code !== '200') return message.error(data.message);
                 if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                data.responseBody.data.unshift({
-                    id: '',
-                    typeName: '全部'
-                })
-                var productTypeList = data.responseBody.data.filter(v=>v.id != '');
-                var productType = productTypeList.length>0 ? productTypeList[0].id : '';
                 this.setState({ 
-                    productType,
-                    productTypeIdList: data.responseBody.data,
-                    productTypeList:  productTypeList,
+                    productTypeIdList: [{
+                        id: '',
+                        typeName: '全部'
+                    }].concat(data.responseBody.data),
+                    productTypeList:  [{
+                        id: '0',
+                        typeName: '全部'
+                    }].concat(data.responseBody.data),
                 })
             })
             
@@ -182,13 +182,13 @@ class DiscountCoupon extends Component {
             title: `是否确认${r.enable == 1 ? "启用" : "禁用"}?`,
             maskClosable: true,
             onOk() {
-                axios.post('/admin/shop/updEnable', { 
+                axios.post('/admin/coupon/updEnable', { 
                     id: r.id,
-                    enable: 2
+                    enable: r.enable == 1 ? 2: 1,
                 }).then(({ data }) => {
                     if (data.code !== "200") return message.error(data.message);
                     if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                    this.setState({ pageNum: 1, storeType: '', enable: '', productTypeId: '' }, () => that.init() );
+                    that.setState({ pageNum: 1, storeType: '', enable: '', productTypeId: '' }, () => that.init() );
                 })
             }
         });
