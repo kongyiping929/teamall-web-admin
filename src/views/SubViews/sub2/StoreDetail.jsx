@@ -170,6 +170,9 @@ class StoreControl extends Component {
 
     init = () => {  // 初始化
         this.detailData();
+        if(document.querySelectorAll('.ant-breadcrumb-link').length > 0){
+            document.querySelectorAll('.ant-breadcrumb-link')[1].innerHTML = "店铺详情"
+        }
     }
 
 

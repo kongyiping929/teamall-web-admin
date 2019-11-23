@@ -107,7 +107,10 @@ class ProductMsgCtrl extends Component {
     }
 
     componentDidMount() {
-        this.init()
+        this.init();
+        if(document.querySelectorAll('.ant-breadcrumb-link').length > 0){
+            document.querySelectorAll('.ant-breadcrumb-link')[1].innerHTML = "规格详情"
+        }
     }
 
     init = () => {
