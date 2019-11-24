@@ -18,7 +18,7 @@ import Cookie from 'js-cookie'
 let baseURL = 'http://119.23.79.12:7001/cy/';
 // let baseURL = 'https://api.teafunshop.com/cy/';
 axios.defaults.baseURL = baseURL;
-
+axios.defaults.withCredentials=true;
 // 配置超时时间
 axios.defaults.timeout = 100000;
 // axios.defaults.headers = {'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'};
