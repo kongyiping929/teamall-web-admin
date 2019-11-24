@@ -31,8 +31,8 @@ class Login extends Component {
             passWord
         })
             .then(({ data }) => {
-                console.log(data);
                 if (data.code !== '200') return message.error(data.message);
+                if (data.responseBody.code !== '1') return message.error(data.responseBody.message);   
 
                 Cookie.set('state', data.responseBody.data);
 
