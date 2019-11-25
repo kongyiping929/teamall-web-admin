@@ -352,10 +352,10 @@ class ProductMsgCtrl extends Component {
     handleProductModal = () => {
         let { soureFileList, urlData, updateUrlData, isAddProduct,paramsNum, appointmentStatus, childFlag, sizeName, marketPrice, besicsPrice, costPrice, addPercent, packageType, productId, appointmentPrice, appointmentInput, sizeData, defineSelect, proSizeId } = this.state;
         if (!sizeName.trim()) return message.error('规格名称不能为空');
-        if (marketPrice == "") return message.error('市场单价不能为空');
-        if (besicsPrice == "") return message.error('基础单价不能为空');
-        if (costPrice == "") return message.error('成本单价不能为空');
-        if (addPercent == "") return message.error('增值百分比不能为空');
+        if (!/^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/.test(marketPrice)) return message.error('市场单价不能小于0');
+        if (!/^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/.test(besicsPrice)) return message.error('基础单价不能小于0');
+        if (!/^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/.test(costPrice)) return message.error('成本单价不能小于0');
+        if (!/^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/.test(addPercent)) return message.error('增值百分比不能小于0');
         if (packageType.length == 0) return message.error('包装类型不能为空');
         if (soureFileList.length == 0) return message.error('图片不能为空');
         if (sizeData.length > 9) return message.error('每个产品最多9个规格')

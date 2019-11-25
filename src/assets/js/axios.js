@@ -51,7 +51,8 @@ axios.interceptors.response.use(
 
         if(response.data.code == 200 && response.data.responseBody.code == "-110130"){
             Cookie.remove('state');
-           return message.error("登录超时");
+            message.error("登录超时");
+            window.location.href = window.location.host + '/login'
         }
         return response;
     },

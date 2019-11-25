@@ -199,7 +199,7 @@ class DiscountCoupon extends Component {
      * @memberof DiscountCoupon
      */
     changeModal = status => {
-        if (!status) return this.setState({ modal: status, effectType: '1', productType: '', useLimit: '', discount: '', derate: '', timeLimit: ''});
+        if (!status) return this.setState({ modal: status, effectType: '1', productType: '0', useLimit: '', discount: '', derate: '', timeLimit: ''});
         this.setState({ modal: status });
     }
 
@@ -217,13 +217,13 @@ class DiscountCoupon extends Component {
     // 确认添加
     handle = () => {
         let { useLimit, discount, derate, timeLimit, productType, effectType } = this.state;
-        if (!useLimit.trim()) return message.error('使用额度不能为空');
-        if (!discount.trim()) return message.error('折扣不能为空');
-        if (!derate.trim()) return message.error('满减不能为空');
-        if (!timeLimit.trim()) return message.error('时限不能为空');
+        if (!/^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/.test(useLimit)) return message.error('使用额度不能小于0');
+        if (!/^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/.test(discount)) return message.error('折扣不能小于0');
+        if (!/^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/.test(derate)) return message.error('满减不能小于0');
+        if (!/^\+?[1-9][0-9]*$/.test(timeLimit)) return message.error('时限为非负整数');
         if (!Number(useLimit) && !Number(discount) && !Number(derate)) return message.error('使用额度、折扣或满减至少有一项不能为0');
         if (useLimit < 0 && discount < 0 && derate < 0) return message.error('使用额度、折扣或满减至少有一项不能小于0');
-        if (!(/^-?\d+(\.\d{1,2})?$/.test(discount))) return message.error('折扣请按规则输入');
+        if (!(/^-?\d+(\.\d{1,2})?$/.test(Number(discount)))) return message.error('折扣请按规则输入');
 
         axios.post('/admin/coupon/saveOrEdit', {
             discount: Number(discount),

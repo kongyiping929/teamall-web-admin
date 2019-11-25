@@ -21,10 +21,10 @@ class Operator extends Component {
             addVisible: false, // 添加模态框
             userVisible: false, // 从属用户信息模态框
             query: '', // 搜索
-            userData: [], // 用户数据
-            userPage: 1, // 当前页码
-            userRows: 10, // 每页条数
-            userTotal: 1, // 总数
+            subUserData: [], // 用户数据
+            subUserPageNum: 1, // 当前页码
+            subUserRows: 10, // 每页条数
+            subUserTotal: 1, // 总数
             operatorUserId: '', // 操作员用户id
             num: '', // 从属随机用户数量
             userId: '', // 增加从属用户 
@@ -71,7 +71,7 @@ class Operator extends Component {
             }
         ]
 
-        this.userColumns = [ // 定义用户列表数据
+        this.subUserColumns = [ // 定义用户列表数据
             {
                 title: '用户ID',
                 dataIndex: 'a',
@@ -107,7 +107,7 @@ class Operator extends Component {
         })
             .then(({data}) => {
                 if (data.code !== '200') return message.error(data.message);
-
+                if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
                 this.setState({ data: data.responseBody.data.list, total: data.responseBody.total })
                 
             })
@@ -115,7 +115,7 @@ class Operator extends Component {
         await axios.post('/admin/shop/all/list')
             .then(({ data }) => {
                 if (data.code !== '200') return message.error(data.message);
-
+                if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
                 data.responseBody.data.unshift({
                     id: '0',
                     shopName: '全部'
@@ -124,6 +124,20 @@ class Operator extends Component {
                 this.setState({ shopIdData: data.responseBody.data })
             })
     }
+     //获取获取从属用户列表
+     getSubUserList = (userId) =>{
+         let {subUserPageNum, pageSize} = this.state;
+        axios.post('/admin/shopOperator/subUser/list', {
+            subUserPageNum,
+            pageSize,
+            userId
+       })
+            .then(({ data }) => {
+                if (data.code !== '200') return message.error(data.message);
+                if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+                this.setState({ subUserData: data.responseBody.data.list, subUserTotal: data.responseBody.total })
+            })
+     }
 
     // 更改搜索框
     changeQeury = e => this.setState({ query: e.target.value.trim() });
@@ -202,11 +216,11 @@ class Operator extends Component {
         
         if (!status) return this.setState({ userVisible: status });
 
-        this.setState({ userVisible: status, operatorUserId: Number(id.userId) })
+        this.setState({ userVisible: status, operatorUserId: Number(id.userId) }, ()=> this.getSubUserList(id.userId))
     }
 
     // 更改用户分页
-    userChangePage = v => this.setState({ userPage: v });
+    userChangePage = v => this.setState({ subUserPage: v });
 
     // 搜索框
     searchUserId = v => this.setState({ query: v });
@@ -331,16 +345,16 @@ class Operator extends Component {
                     <div style={{ textAlign: 'center' }}>
                         <Table
                             bordered
-                            dataSource={this.state.userData}
-                            columns={this.userColumns}
+                            dataSource={this.state.subUserData}
+                            columns={this.subUserColumns}
                             pagination={{
-                                total: this.state.userTotal,
-                                pageSize: this.state.userRows,
-                                onChange: this.userChangePage,
-                                current: this.state.userPage,
+                                total: this.state.subUserTotal,
+                                pageSize: this.state.pageSize,
+                                onChange: this.subUserChangePage,
+                                current: this.state.subUserPageNum,
                                 hideOnSinglePage: true,
                                 /* showQuickJumper: true, */
-                                showTotal: () => `共 ${this.state.userTotal} 条数据`
+                                showTotal: () => `共 ${this.state.subUserTotal} 条数据`
                             }}
                             size="small"
                             rowKey={(record, index) => index}
