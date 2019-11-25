@@ -126,7 +126,7 @@ class Operator extends Component {
     }
      //获取获取从属用户列表
      getSubUserList = (userId) =>{
-         let {subUserPageNum, pageSize} = this.state;
+        let {subUserPageNum, pageSize} = this.state;
         axios.post('/admin/shopOperator/subUser/list', {
             subUserPageNum,
             pageSize,
@@ -143,7 +143,7 @@ class Operator extends Component {
     changeQeury = e => this.setState({ query: e.target.value.trim() });
 
     // 点击搜索
-    searchQuery = v => console.log(v);
+    searchQuery = v => this.setState({ query: v }, ()=> this.getSubUserList(v));
 
     // 重置
     reset = () => this.setState({ query: '' });
@@ -223,7 +223,7 @@ class Operator extends Component {
     userChangePage = v => this.setState({ subUserPage: v });
 
     // 搜索框
-    searchUserId = v => this.setState({ query: v });
+    searchUserId = v => this.setState({ query: v })
 
     // 随机从属input
     getUserData = (e, type) => {  

@@ -89,7 +89,11 @@ class ThresholdValue extends Component {
                 key: '2',
                 render: (t, r, i) => (
                     <span className='color' onClick={r.dictName == "每日释放开关" ? () => this.tableClick(r) : e => this.showModal(JSON.parse(JSON.stringify(r)))}>
-                        {r.dictName == "每日释放开关" && r.dictValue == 0 ? <span className="ant-btn-link">开启 </span>: r.dictName == "每日释放开关" && r.dictValue == 1 ? '关闭' : <span className="ant-btn-link">编辑 </span>}
+                        {
+                            r.dictName == "每日释放开关" && r.dictValue == 0 ? 
+                            <span className="ant-btn-link">开启 </span>: r.dictName == "每日释放开关" && r.dictValue == 1 ? '关闭' :
+                            <span className="ant-btn-link">编辑 </span>
+                        }
                     </span>
                 )
             }
@@ -105,7 +109,6 @@ class ThresholdValue extends Component {
             .then(({ data }) => {
                 if (data.code !== "200") return message.error(data.message);
                 if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-
                 this.setState({ data: data.responseBody.data });
             })
     }
@@ -151,7 +154,7 @@ class ThresholdValue extends Component {
         let { info, vipList } = this.state;
         if (info.dictName !== 'vip升级标准') {
             if ((info.dictRemark === '进度 0-0.001,可填写 0' && info.paramValue >= 0 && /^-?\d+(\.\d{1,3})?$/.test(info.paramValue)) || (info.dictRemark === '请填写0-1的小数，精度：0.0001' && info.paramValue < 1 && info.paramValue > 0 && /^-?\d+(\.\d{1,4})?$/.test(info.paramValue))) {
-                axios.post('/admin/dict/updGenera', { ...info })
+                axios.post('/admin/dict/updGenera', { ...info,dictValue: info.paramValue  })
                     .then(({ data }) => {
                         if (data.code !== "200") return message.error(data.message);
                         if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
@@ -164,29 +167,29 @@ class ThresholdValue extends Component {
             } else {
                 message.error('请按照规则输入,1');
             }
-        }
-
-        for(let i =0; i< vipList.length; i++) {
-            if (info.dictName === 'vip升级标准' && /^-?\d+(\.\d{1,4})?$/.test(vipList[i].vipExtract) && /^-?\d+(\.\d{1,4})?$/.test(vipList[i].vipRelease) && vipList[i].vipExtract >= 0 && vipList[i].vipRelease >= 0) {
-                axios.post('/admin/dict/updVip', {
-                    dictTypeCode: info.dictTypeCode,
-                    list: vipList
-                 })
-                    .then(({ data }) => {
-                        if (data.code !== "200") return message.error(data.message);
-                        if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
-                        message.success('编辑成功');
-                        this.setState({
-                            isModel: false,
-                            info: {}
-                        }, () => this.init());
-                    })
-
-            } else {
-                message.error('请按照规则输入,2');
-                break;
+            return
+        }else{
+            for(let i =0; i< vipList.length; i++) {
+                if (info.dictName === 'vip升级标准' && /^-?\d+(\.\d{1,4})?$/.test(vipList[i].vipExtract) && /^-?\d+(\.\d{1,4})?$/.test(vipList[i].vipRelease) && vipList[i].vipExtract >= 0 && vipList[i].vipRelease >= 0) {
+                } else {
+                    return message.error('请按照规则输入');
+                }
             }
+            axios.post('/admin/dict/updVip', {
+                dictTypeCode: info.dictTypeCode,
+                list: vipList
+             })
+                .then(({ data }) => {
+                    if (data.code !== "200") return message.error(data.message);
+                    if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
+                    message.success('编辑成功');
+                    this.setState({
+                        isModel: false,
+                        info: {}
+                    }, () => this.init());
+                })
         }
+
     }
 
     handleCancel = () => { // 模态框取消

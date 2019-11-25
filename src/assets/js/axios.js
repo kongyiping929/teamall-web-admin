@@ -50,6 +50,7 @@ axios.interceptors.response.use(
     function(response) {
 
         if(response.data.code == 200 && response.data.responseBody.code == "-110130"){
+            debugger
             Cookie.remove('state');
             message.error("登录超时");
             window.location.href = window.location.host + '/login'
