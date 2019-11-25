@@ -26,7 +26,7 @@ class Operator extends Component {
             userRows: 10, // 每页条数
             userTotal: 1, // 总数
             operatorUserId: '', // 操作员用户id
-            Num: '', // 从属随机用户数量
+            num: '', // 从属随机用户数量
             userId: '', // 增加从属用户 
         }
 
@@ -213,18 +213,18 @@ class Operator extends Component {
 
     // 随机从属input
     getUserData = (e, type) => {  
-        if (type === 'random') this.setState({ Num: Number(e.target.value) });
+        if (type === 'random') this.setState({ num: Number(e.target.value) });
         if (type === 'add') this.setState({ userId: Number(e.target.value) });
     }
 
     // 随机从属添加
     addRandom = type => {
-        let { operatorUserId, Num, userId } = this.state;
+        let { operatorUserId, num, userId } = this.state;
         
         if(type == 'random') {
             axios.post('/admin/shopOperator/randSubUser', {
                 operatorUserId,
-                Num
+                num
             })
                 .then(({ data }) => {
                     if (data.code !== '200') return message.error(data.message);
