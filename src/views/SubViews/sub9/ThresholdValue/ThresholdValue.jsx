@@ -12,24 +12,28 @@ class ThresholdValue extends Component {
             info: {}, // 参数对象
             vipList: [ // vip参数
                 {
-                    vipLimit: '',
-                    vipExtract: '',
-                    vipRelease: ''
+                    grade: 2,
+                    commission: '',
+                    quota: '',
+                    release: ''
                 },
                 {
-                    vipLimit: '',
-                    vipExtract: '',
-                    vipRelease: ''
+                    grade: 3,
+                    commission: '',
+                    quota: '',
+                    release : ''
                 },
                 {
-                    vipLimit: '',
-                    vipExtract: '',
-                    vipRelease: ''
+                    grade: 4,
+                    commission: '',
+                    quota: '',
+                    release : ''
                 },
                 {
-                    vipLimit: '',
-                    vipExtract: '',
-                    vipRelease: ''
+                    grade: 5,
+                    commission: '',
+                    quota: '',
+                    release : ''
                 }
             ], // vip升级标准数据
             vipData: [ // vip字段名
@@ -115,7 +119,7 @@ class ThresholdValue extends Component {
 
     onChange = e => { // 更改输入框
         let { info } = this.state;
-        info.paramValue = Number(e.target.value)
+        info.dictValue = Number(e.target.value)
         this.setState({ info });
     }
 
@@ -126,10 +130,18 @@ class ThresholdValue extends Component {
     }
 
     showModal = info => { // 显示模态框
-        if (info.dictName !== '每日释放开关') this.setState({
-            isModel: true,
-            info,
-        });
+        if(info.dictName == 'vip升级标准'){
+            this.setState({
+                isModel: true,
+                vipList: JSON.parse(info.dictExtend),
+                info,
+            });
+        }else {
+            this.setState({
+                isModel: true,
+                info,
+            });
+        }
     }
     
     // 每日释放
@@ -153,8 +165,8 @@ class ThresholdValue extends Component {
     handleOk = () => { // 模态框确认
         let { info, vipList } = this.state;
         if (info.dictName !== 'vip升级标准') {
-            if ((info.dictRemark === '进度 0-0.001,可填写 0' && info.paramValue >= 0 && /^-?\d+(\.\d{1,3})?$/.test(info.paramValue)) || (info.dictRemark === '请填写0-1的小数，精度：0.0001' && info.paramValue < 1 && info.paramValue > 0 && /^-?\d+(\.\d{1,4})?$/.test(info.paramValue))) {
-                axios.post('/admin/dict/updGenera', { ...info,dictValue: info.paramValue  })
+            if (( info.dictValue  >= 0 && /^-?\d+(\.\d{1,3})?$/.test(info.dictValue)) || (info.dictRemark === '请填写0-1的小数，精度：0.0001' && info.dictValue < 1 && info.dictValue > 0 && /^-?\d+(\.\d{1,4})?$/.test(info.dictValue))) {
+                axios.post('/admin/dict/updGenera', { ...info,dictValue: info.dictValue   })
                     .then(({ data }) => {
                         if (data.code !== "200") return message.error(data.message);
                         if (data.responseBody.code !== '1') return message.error(data.responseBody.message);
@@ -170,9 +182,10 @@ class ThresholdValue extends Component {
             return
         }else{
             for(let i =0; i< vipList.length; i++) {
-                if (info.dictName === 'vip升级标准' && /^-?\d+(\.\d{1,4})?$/.test(vipList[i].vipExtract) && /^-?\d+(\.\d{1,4})?$/.test(vipList[i].vipRelease) && vipList[i].vipExtract >= 0 && vipList[i].vipRelease >= 0) {
+                
+                if (info.dictName === 'vip升级标准' && /^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/.test(vipList[i].quota) && /^-?\d+(\.\d{1,4})?$/.test(vipList[i].commission) && /^-?\d+(\.\d{1,4})?$/.test(vipList[i].release) && vipList[i].commission >= 0 && vipList[i].release >= 0) {
                 } else {
-                    return message.error('请按照规则输入');
+                    return message.error('请按照规则输入,2');
                 }
             }
             axios.post('/admin/dict/updVip', {
@@ -228,15 +241,15 @@ class ThresholdValue extends Component {
                                     vipData.map((v, i) =>
                                         <div key={i} style={{ margin: '5px 0' }}>
                                             <span>{v.name} </span>
-                                            <Input placeholder='输入升级时所需额度' onChange={e => this.limitChange(e, i, 'vipLimit')} value={vipList[i].vipLimit} style={{ width: 150, margin: '0 10px 0 5px' }} type="number" />
+                                            <Input placeholder='输入升级时所需额度' onChange={e => this.limitChange(e, i, 'quota')} value={vipList[i].quota} style={{ width: 150, margin: '0 10px 0 5px' }} type="number" />
                                             <span >{v.extract} </span>
-                                            <Input placeholder='输入提成百分比' onChange={e => this.limitChange(e, i, 'vipExtract')} value={vipList[i].vipExtract} style={{ width: 150, margin: '0 10px 0 5px' }} type="number" />
+                                            <Input placeholder='输入提成百分比' onChange={e => this.limitChange(e, i, 'commission')} value={vipList[i].commission} style={{ width: 150, margin: '0 10px 0 5px' }} type="number" />
                                             <span>{v.release} </span>
-                                            <Input placeholder='输入释放百分比' onChange={e => this.limitChange(e, i, 'vipRelease')} value={vipList[i].vipRelease} style={{ width: 150, margin: '0 10px 0 5px' }} type="number" />
+                                            <Input placeholder='输入释放百分比' onChange={e => this.limitChange(e, i, 'release')} value={vipList[i].release} style={{ width: 150, margin: '0 10px 0 5px' }} type="number" />
                                         </div>
                                     )
                                 }
-                            </> : <Input value={this.state.info.paramValue} onChange={this.onChange} type="number" />
+                            </> : <Input value={this.state.info.dictValue} onChange={this.onChange} type="number" />
                     }
 
                 </Modal>
