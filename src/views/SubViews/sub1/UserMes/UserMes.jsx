@@ -43,7 +43,7 @@ class UserMes extends Component {
                 title: '账号启用状态',
                 dataIndex: 'userStatus',
                 align: 'center',
-                render: (t, r, i) => t == 1 ? '启用' : t == 2 ? '封禁' : ''
+                render: (t, r, i) => t == 1 ? '启用' :  '封禁' 
             },
             {
                 title: '注册时间',
@@ -66,7 +66,7 @@ class UserMes extends Component {
                 render: (t, r, i) => (
                     <>
                     {
-                        r.userStatus === 1 ? <Button type="link" onClick={() => this.changeStatus(r)}>启用</Button> : <Button type="link" onClick={() => this.changeStatus(r)}>禁用</Button>
+                        r.userStatus === 1 ? <Button type="link" onClick={() => this.changeStatus(r)}>禁用</Button> : <Button type="link" onClick={() => this.changeStatus(r)}>启用</Button> 
                     }
                     </>
                 )

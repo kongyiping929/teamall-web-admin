@@ -672,7 +672,7 @@ class ProductMsgCtrl extends Component {
                                 onPreview={this.handlePreview}
                                 onChange={this.handleChange}
                             >
-                                {fileList.length >= 6 ? null : (
+                                {fileList.length >= 1 ? null : (
                                     <div>
                                         <Icon type="plus" />
                                         <div className="ant-upload-text">Upload</div>

@@ -116,7 +116,7 @@ class DiscountCoupon extends Component {
                 render: (t, r, i) => (
                     <>
                     {
-                        r.enable === 1 ? <Button type="link" onClick={() => this.changeStatus(r)}>启用</Button> : <Button type="link" onClick={() => this.changeStatus(r)}>禁用</Button>
+                        r.enable === 2 ? <Button type="link" onClick={() => this.changeStatus(r)}>启用</Button> : <Button type="link" onClick={() => this.changeStatus(r)}>禁用</Button>
                     }
                     </>
                 )

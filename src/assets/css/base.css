@@ -287,3 +287,7 @@ html {
     min-width: 1344px;
     overflow-x: auto;
 }
+.ant-upload-list-picture-card{
+     overflow: hidden !important;
+     float: none !important;
+}
